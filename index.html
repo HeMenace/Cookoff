@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head><body>
+<title>Jessop Cookoff 2026</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@600&display=swap">
+<style>
+/* Layout: sticky clock bar, tab row, one stacked column of panels (phone first, 2 columns on wide screens) */
+:root{
+  --bg:#fff7f5; --surface:#ffffff; --sunk:#f6ebe8; --line:#ead8d3;
+  --fg:#2a1619; --muted:#7a5d61;
+  --accent:#b3123f;          /* cranberry */
+  --accent-fg:#ffffff;
+  --good:#2f7d32; --bad:#c62828; --warn:#b86b00;
+  --t-garrett:#d7261e; --t-jessop:#e07b12; --t-ben:#1f5fa8;
+  --display:"Bricolage Grotesque", "Arial Black", system-ui, sans-serif;
+  --body:"DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#170e10; --surface:#22161a; --sunk:#2c1d21; --line:#3e2a2f;
+  --fg:#f8ecee; --muted:#c3a3a9; --accent:#ff4f7b; --accent-fg:#1b0a0e;
+  --good:#6fcf73; --bad:#ff6b6b; --warn:#ffb648;
+  --t-garrett:#ff5a4f; --t-jessop:#ffa143; --t-ben:#5fa2ff; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#170e10; --surface:#22161a; --sunk:#2c1d21; --line:#3e2a2f;
+  --fg:#f8ecee; --muted:#c3a3a9; --accent:#ff4f7b; --accent-fg:#1b0a0e;
+  --good:#6fcf73; --bad:#ff6b6b; --warn:#ffb648;
+  --t-garrett:#ff5a4f; --t-jessop:#ffa143; --t-ben:#5fa2ff; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.45}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--accent)}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1040px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* clock bar */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--accent);color:var(--accent-fg)}
+.bar .wrap{display:flex;align-items:center;gap:12px;padding-block:10px;flex-wrap:wrap}
+.brand{font-family:var(--display);font-weight:800;font-size:1.15rem;letter-spacing:-.01em;line-height:1.1;flex:1 1 auto;min-width:0}
+.brand small{display:block;font-family:var(--body);font-weight:500;font-size:.75rem;opacity:.85;letter-spacing:.02em}
+.clock{font-family:var(--mono);font-size:1.6rem;font-variant-numeric:tabular-nums;line-height:1}
+.clock-sub{font-size:.75rem;opacity:.9;text-align:right}
+.bar.due{animation:pulse 1s ease-in-out infinite alternate}
+@keyframes pulse{from{filter:none}to{filter:brightness(1.25) saturate(1.2)}}
+
+nav.tabs{display:flex;gap:6px;padding-block:12px;overflow-x:auto}
+nav.tabs button{flex:1 1 auto;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 10px;font-weight:700;font-size:.88rem;white-space:nowrap}
+nav.tabs button[aria-selected="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+
+main{display:grid;gap:14px;padding-bottom:40px}
+@media (min-width:820px){main.two{grid-template-columns:1fr 1fr;align-items:start}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;min-width:0}
+h2{font-family:var(--display);font-weight:800;font-size:1.3rem;margin:0 0 10px;text-wrap:balance;letter-spacing:-.01em}
+h3{font-family:var(--display);font-weight:500;font-size:1.05rem;margin:14px 0 6px}
+.label{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+.muted{color:var(--muted)}
+.guess{font-size:.78rem;color:var(--warn);font-weight:500}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.btn{border:0;border-radius:10px;padding:10px 16px;font-weight:700;background:var(--sunk)}
+.btn.primary{background:var(--accent);color:var(--accent-fg)}
+.btn.danger{background:var(--bad);color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.ro .needs-write{pointer-events:none;opacity:.5}
+
+/* leaderboard */
+.lb{display:grid;gap:10px}
+.lb-card{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:14px;border-radius:var(--r);background:var(--surface);border:1px solid var(--line);border-left:8px solid var(--tc)}
+.rank{font-family:var(--display);font-weight:800;font-size:2rem;width:2ch;text-align:center;color:var(--tc)}
+.lb-name{font-family:var(--display);font-weight:800;font-size:1.2rem}
+.lb-break{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.chip{font-size:.75rem;padding:2px 8px;border-radius:999px;background:var(--sunk);font-variant-numeric:tabular-nums;white-space:nowrap}
+.chip.bad{color:var(--bad)} .chip.good{color:var(--good)} .chip.warn{color:var(--warn)}
+.score{font-family:var(--mono);font-size:1.8rem;font-variant-numeric:tabular-nums;text-align:right}
+.score small{display:block;font-family:var(--body);font-size:.7rem;color:var(--muted)}
+
+/* team picker */
+.picker{display:flex;gap:8px;flex-wrap:wrap}
+.picker button{border:2px solid var(--tc);background:transparent;border-radius:999px;padding:8px 14px;font-weight:700;color:var(--fg)}
+.picker button[aria-pressed="true"]{background:var(--tc);color:#fff}
+
+/* drinks */
+.drink-row{display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center;padding-block:6px;border-bottom:1px dashed var(--line)}
+.drink-row:last-of-type{border-bottom:0}
+.step{width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--sunk);font-size:1.3rem;font-weight:700}
+.count{font-family:var(--mono);font-size:1.3rem;min-width:2.5ch;text-align:center;font-variant-numeric:tabular-nums}
+.glasses{font-size:.95rem;letter-spacing:1px;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:clip}
+.meter{height:14px;border-radius:999px;background:var(--sunk);overflow:hidden;margin-top:10px}
+.meter i{display:block;height:100%;background:var(--tc);transition:width .3s}
+
+/* wheel */
+.wheel-box{position:relative;width:min(320px,100%);aspect-ratio:1;max-width:100%;margin:6px auto 12px}
+.wheel-box canvas{width:100%;height:100%;display:block;transition:transform 4.2s cubic-bezier(.12,.7,.15,1)}
+.pointer{position:absolute;top:-6px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-top:26px solid var(--fg);z-index:2}
+.result{font-family:var(--display);font-weight:800;font-size:1.25rem;text-align:center;min-height:1.6em;text-wrap:balance}
+.dare{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;padding:10px 0;border-bottom:1px dashed var(--line)}
+.dare:last-child{border-bottom:0}
+.dare .n{font-family:var(--mono);color:var(--muted)}
+.dare .acts{grid-column:2;display:flex;gap:6px;flex-wrap:wrap}
+.seg{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:6px 10px;font-weight:700;font-size:.85rem}
+.seg[aria-pressed="true"].done{background:var(--good);color:#fff;border-color:var(--good)}
+.seg[aria-pressed="true"].failed{background:var(--bad);color:#fff;border-color:var(--bad)}
+
+/* banner + links + drink types */
+.banner{background:var(--sunk);border-style:dashed;display:grid;gap:8px}
+.ing{display:flex;flex-wrap:wrap;gap:8px}
+.ing span{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-weight:700}
+a.link{text-decoration:none;display:inline-block}
+.types{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px;padding:4px 0 10px}
+.type{border:1px solid var(--line);background:var(--sunk);border-radius:10px;padding:8px;text-align:left;display:grid;gap:2px}
+.type span{font-size:.75rem;color:var(--muted)}
+/* checklist */
+.check{display:flex;gap:10px;align-items:center;padding:8px 0}
+.check input{width:24px;height:24px;accent-color:var(--good)}
+
+/* judging */
+.jtable{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.jtable th,.jtable td{padding:6px 4px;text-align:left;border-bottom:1px solid var(--line)}
+.jtable select{width:100%;min-width:56px;padding:8px 4px;border-radius:8px;border:1px solid var(--line);background:var(--sunk)}
+.scroll{overflow-x:auto}
+input[type=text],textarea{width:100%;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--sunk)}
+textarea{min-height:260px;line-height:1.5}
+.dish{display:grid;gap:6px;margin-bottom:12px}
+
+.sync{font-size:.75rem;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.2)}
+.confirm{display:none;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.confirm.show{display:flex}
+@media (prefers-reduced-motion:reduce){.wheel-box canvas{transition-duration:.6s}.bar.due{animation:none}}
+</style>
+
+<div class="bar" id="bar"><div class="wrap">
+  <div class="brand">Jessop Cookoff<small>Sat Nov 28 · 1:00 PM · <span id="syncState" class="sync">Saved on this device</span></small></div>
+  <div>
+    <div class="clock" id="clock">2:00:00</div>
+    <div class="clock-sub" id="clockSub">Clock not started</div>
+  </div>
+</div></div>
+
+<div class="wrap">
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-tab="board" aria-selected="true">Leaderboard</button>
+    <button role="tab" data-tab="team">My team</button>
+    <button role="tab" data-tab="judge">Judging</button>
+    <button role="tab" data-tab="setup">Setup</button>
+  </nav>
+  <main id="view"></main>
+</div>
+
+<script>
+(function(){
+"use strict";
+const TEAMS=[
+  {id:"garrett",name:"Team Garrett",emoji:"🌶️",house:"Jimenez household",members:["Garrett","Allie","Ty","Dom"],color:"--t-garrett"},
+  {id:"jessop",name:"Team Jessop",emoji:"👨‍🦰",house:"Grandma Jessop household",members:["Jessop","Keegan","Alli","Katie","Henry"],color:"--t-jessop"},
+  {id:"ben",name:"Team Ben",emoji:"🦅",house:"Jessop household",members:["Ben","Sarah","Amaya","Mitza"],color:"--t-ben"}
+];
+const INGREDIENTS=["Fresh ginger 🫚","Zucchini 🥒","Canned cranberry sauce","Cream cheese 🥯"];
+/* Standard drink = 0.6 oz of pure alcohol (a 12 oz 5% beer). Values rounded to 0.1. */
+const DRINK_TYPES=[
+  ["Beer / seltzer","12 oz · 5%",1],["Light beer","12 oz · 4%",0.8],["IPA / strong beer","12 oz · 7%",1.4],
+  ["Wine","5 oz glass",1],["Shot","1.5 oz · 80 proof",1],["Fireball shot","1.5 oz · 66 proof",0.8],
+  ["Cocktail","mixed drink",1.5],["Half a drink","whatever it was",0.5]
+];
+/* For GitHub Pages: paste your Firebase web config here to sync all three houses.
+   Leave it null inside Claude, where the page syncs through Claude instead. */
+const FIREBASE_CONFIG={
+  apiKey:"AIzaSyCfv-Jsm4kFbytAbYWS3uHrJzpSGItw4Yw",
+  authDomain:"cookoff-f9818.firebaseapp.com",
+  databaseURL:"https://cookoff-f9818-default-rtdb.firebaseio.com",
+  projectId:"cookoff-f9818",
+  storageBucket:"cookoff-f9818.firebasestorage.app",
+  messagingSenderId:"375573810070",
+  appId:"1:375573810070:web:4662730d6594ec2193ebb7"
+};
+const CATS=[["entree","Entree"],["drink","Drink"],["dessert","Dessert / side"]];
+const DURATION=120*60*1000, SPIN_EVERY=15*60*1000, DRINKS_PER=5, DARE_PENALTY=5;
+const DEFAULT_WHEEL=[
+  "Whole team takes a shot 🥃",
+  "Cook one-handed for 5 minutes",
+  "Speak only in accents for 15 minutes",
+  "Dance break: 1 full song, no cooking",
+  "FaceTime another team and trash talk",
+  "Silent kitchen for 5 minutes",
+  "Waterfall 🍻",
+  "Swap jobs with a teammate",
+  "Put on a costume piece (or make one)",
+  "Sing everything you say for 5 minutes",
+  "Finish your current drink",
+  "Free pass! 🎉"
+];
+const blankTeam=()=>({drinks:{},drinkLog:{},dares:[],scores:{},dishes:{}});
+/* bring older saves (plain counts) and Firebase's dropped empty fields into shape */
+function normTeam(raw){
+  const d=Object.assign(blankTeam(),JSON.parse(JSON.stringify(raw||{})));
+  for(const k of ["drinks","drinkLog","scores","dishes"])if(!d[k]||typeof d[k]!=="object")d[k]={};
+  d.dares=Array.isArray(d.dares)?d.dares.filter(Boolean):Object.values(d.dares||{});
+  for(const m in d.drinks){if(!Array.isArray(d.drinkLog[m])&&d.drinks[m]>0)d.drinkLog[m]=Array(d.drinks[m]).fill(1)}
+  for(const m in d.drinkLog){const l=d.drinkLog[m];d.drinkLog[m]=Array.isArray(l)?l.filter(x=>typeof x==="number"):Object.values(l||{})}
+  delete d.drinks;delete d.ingredients;
+  return d;
+}
+const state={
+  config:{running:false,startAt:0,banked:0,judges:2,wheel:DEFAULT_WHEEL.slice(),stdMode:false,discord:"",jam:""},
+  teams:Object.fromEntries(TEAMS.map(t=>[t.id,blankTeam()]))
+};
+const ui={tab:"board",team:"garrett",spinning:false,lastResult:""};
+const LS="cookoff-2026-v1";
+try{const s=JSON.parse(localStorage.getItem(LS)||"null");
+  if(s&&s.config){Object.assign(state.config,s.config);for(const t of TEAMS)state.teams[t.id]=normTeam(s.teams&&s.teams[t.id]);}
+  const u=JSON.parse(localStorage.getItem(LS+"-ui")||"null");if(u){ui.tab=u.tab||ui.tab;ui.team=u.team||ui.team;}
+}catch(e){}
+function saveLocal(){try{localStorage.setItem(LS,JSON.stringify(state))}catch(e){}}
+function saveUi(){try{localStorage.setItem(LS+"-ui",JSON.stringify({tab:ui.tab,team:ui.team}))}catch(e){}}
+
+/* ---------- shared store (db) with local fallback ---------- */
+let db=null, readOnly=false;
+const pending={}, inflight={};
+function persist(path,obj){
+  saveLocal();
+  if(!db||readOnly)return;
+  pending[path]=JSON.parse(JSON.stringify(obj));
+  if(!inflight[path])flush(path);
+}
+async function flush(path){
+  inflight[path]=true;
+  while(pending[path]){
+    const d=pending[path];pending[path]=null;
+    try{await db.doc(path).set(d);setSync("Live · synced")}
+    catch(e){
+      if(e&&e.code==="invalid_argument"){readOnly=true;document.body.classList.add("ro");setSync("View only");break}
+      if(e&&e.code==="unavailable"){await new Promise(r=>setTimeout(r,800+Math.random()*800));try{await db.doc(path).set(d)}catch(_){setSync("Not synced, saved here")}}
+      else setSync("Not synced, saved here");
+    }
+  }
+  inflight[path]=false;
+}
+const saveConfig=()=>persist("game/config",state.config);
+const saveTeam=id=>persist("teams/"+id,state.teams[id]);
+function setSync(t){document.getElementById("syncState").textContent=t}
+
+function loadScript(src){return new Promise((ok,no)=>{const s=document.createElement("script");s.src=src;s.onload=ok;s.onerror=no;document.head.appendChild(s)})}
+/* Wraps Firebase Realtime Database in the same doc().set / onSnapshot shape the page uses */
+async function firebaseDb(){
+  const v="10.12.2";
+  await loadScript(`https://www.gstatic.com/firebasejs/${v}/firebase-app-compat.js`);
+  await loadScript(`https://www.gstatic.com/firebasejs/${v}/firebase-database-compat.js`);
+  const app=window.firebase.initializeApp(FIREBASE_CONFIG);
+  const rt=app.database(),root="cookoff2026/";
+  return {doc(p){const ref=rt.ref(root+p);return{
+    set:d=>ref.set(d),
+    onSnapshot(next,err){const h=s=>next({exists:s.exists(),data:()=>s.val(),metadata:{fromCache:false}});
+      ref.on("value",h,e=>err&&err(e));return()=>ref.off("value",h)}}}};
+}
+(async function connect(){
+  try{
+    if(FIREBASE_CONFIG){setSync("Connecting…");db=await firebaseDb();}
+    else{
+      if(!window.claude||!window.claude.use)return;
+      db=await window.claude.use("db");
+      if(!db)return;
+      const user=await window.claude.use("user");
+      const can=user?await user.can("data.write"):null;
+      if(can===false){readOnly=true;document.body.classList.add("ro");setSync("View only");}
+      else setSync("Connecting…");
+    }
+    const timer=setTimeout(()=>setSync("Can't reach live data yet"),10000);
+    const done=()=>{clearTimeout(timer);if(!readOnly)setSync("Live · synced")};
+    db.doc("game/config").onSnapshot(s=>{
+      if(!s.metadata.fromCache)done();
+      if(s.exists&&!pending["game/config"]&&!inflight["game/config"]){Object.assign(state.config,s.data());saveLocal();render(true)}
+    },()=>setSync("Live sync stopped, saved here"));
+    for(const t of TEAMS){
+      db.doc("teams/"+t.id).onSnapshot(s=>{
+        if(s.exists&&!pending["teams/"+t.id]&&!inflight["teams/"+t.id]){state.teams[t.id]=normTeam(s.data());saveLocal();render(true)}
+      },()=>{});
+    }
+  }catch(e){db=null;setSync(FIREBASE_CONFIG?"Can't reach Firebase, saved here":"Saved on this device")}
+})();
+
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const teamById=id=>TEAMS.find(t=>t.id===id);
+function elapsed(){const c=state.config;return Math.max(0,(c.banked||0)+(c.running?Date.now()-c.startAt:0))}
+function fmt(ms,hours){ms=Math.max(0,Math.ceil(ms/1000));const h=Math.floor(ms/3600),m=Math.floor(ms%3600/60),s=ms%60;
+  return (hours||h?h+":"+String(m).padStart(2,"0"):m)+":"+String(s).padStart(2,"0")}
+function judgeKeys(){return Array.from({length:state.config.judges||1},(_,i)=>"j"+(i+1))}
+function tally(t){
+  const d=state.teams[t.id];
+  let judged=0,cats={};
+  for(const [k] of CATS){
+    const vals=judgeKeys().map(j=>d.scores[j]&&d.scores[j][k]).filter(v=>typeof v==="number");
+    cats[k]=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null;
+    if(cats[k]!==null)judged+=cats[k];
+  }
+  const target=t.members.length*DRINKS_PER;
+  const finished=r1(t.members.reduce((a,m)=>a+drunk(d,m),0));
+  const left=Math.max(0,r1(target-finished));
+  const fails=d.dares.filter(x=>x.status==="failed").length;
+  const total=r1(judged-left-fails*DARE_PENALTY);
+  return {cats,judged:r1(judged),target,finished,left,fails,total};
+}
+function r1(v){return Math.round(v*10)/10}
+/* drinks one person has finished: a plain count, or standard drinks when that mode is on */
+function drunk(d,m){const l=d.drinkLog[m]||[];return state.config.stdMode?r1(l.reduce((a,b)=>a+b,0)):l.length}
+const n1=v=>Number.isInteger(v)?String(v):v.toFixed(1);
+
+/* ---------- views ---------- */
+function viewBoard(){
+  const rows=TEAMS.map(t=>({t,s:tally(t)})).sort((a,b)=>b.s.total-a.s.total);
+  const over=elapsed()>=DURATION;
+  return `<section class="panel"><h2>Leaderboard</h2>
+  <p class="muted" style="margin:0 0 12px">Judges' total (max 30), minus 1 per leftover drink, minus 5 per failed dare. ${over?"Time is up, these are final once judging is in.":"Drink penalties are live: they shrink as drinks get finished."}</p>
+  <div class="lb">${rows.map((r,i)=>{const s=r.s;return `
+    <div class="lb-card" style="--tc:var(${r.t.color})">
+      <div class="rank">${i+1}</div>
+      <div style="min-width:0"><div class="lb-name">${r.t.emoji} ${esc(r.t.name)}</div>
+        <div class="muted" style="font-size:.8rem">${esc(r.t.members.join(", "))}</div>
+        <div class="lb-break">
+          <span class="chip">Judges ${n1(s.judged)}/30</span>
+          <span class="chip ${s.left?"bad":"good"}">🍹 ${s.finished}/${s.target}${s.left?" · −"+s.left:""}</span>
+          <span class="chip ${s.fails?"bad":""}">🛞 ${state.teams[r.t.id].dares.length} spins${s.fails?" · −"+s.fails*DARE_PENALTY:""}</span>
+        </div></div>
+      <div class="score">${n1(s.total)}<small>points</small></div>
+    </div>`}).join("")}</div></section>
+  ${hangout()}${banner()}`;
+}
+function banner(){
+  return `<section class="panel banner"><div class="label">Every dish menu must use</div>
+    <div class="ing">${INGREDIENTS.map(i=>`<span>${i}</span>`).join("")}</div>
+    <div class="muted" style="font-size:.85rem">Make an entree, a drink, and a dessert or side. Costumes highly encouraged 👯</div></section>`;
+}
+const safeUrl=u=>/^https:\/\/[^\s"'<>]+$/.test(u||"")?u:"";
+function hangout(){
+  const c=state.config,dc=safeUrl(c.discord),jm=safeUrl(c.jam);
+  if(!dc&&!jm)return `<section class="panel"><h2>🎧 Hang out</h2><p class="muted" style="margin:0">Add your Discord invite and Spotify Jam link in Setup and they'll show up here for every house.</p></section>`;
+  return `<section class="panel"><h2>🎧 Hang out</h2><div class="row">
+    ${dc?`<a class="btn primary link" href="${esc(dc)}" target="_blank" rel="noopener">💬 Join the Discord</a>`:""}
+    ${jm?`<a class="btn primary link" href="${esc(jm)}" target="_blank" rel="noopener">🎶 Join the Spotify Jam</a>`:""}</div></section>`;
+}
+function viewTeam(){
+  const t=teamById(ui.team),d=state.teams[t.id],s=tally(t);
+  const picker=`<div class="picker">${TEAMS.map(x=>`<button data-pick="${x.id}" style="--tc:var(${x.color})" aria-pressed="${x.id===t.id}">${x.emoji} ${esc(x.name)}</button>`).join("")}</div>`;
+  const drinks=`<section class="panel" style="--tc:var(${t.color})"><h2>🍻 Drinks</h2>
+    <p class="muted" style="margin:0 0 6px">Goal: ${DRINKS_PER} each, ${s.target} total. The split doesn't need to be even. ${state.config.stdMode
+      ?"<b>Standard drink mode:</b> tap + and pick what was finished. A 12 oz beer counts as 1, a Fireball shot as 0.8."
+      :"Tap + when a drink is fully finished; half a drink still counts as left over."}</p>
+    ${t.members.map(m=>{const l=d.drinkLog[m]||[],c=drunk(d,m),open=ui.pickFor===m&&state.config.stdMode;return `<div class="drink-row">
+      <div style="min-width:0"><b>${esc(m)}</b><div class="glasses" aria-hidden="true">${"🍹".repeat(Math.min(l.length,12))}${l.length>12?"+":""}</div></div>
+      <button class="step needs-write" data-drink="${esc(m)}" data-d="-1" aria-label="Remove last drink for ${esc(m)}">−</button>
+      <span class="count">${n1(c)}</span>
+      <button class="step needs-write" data-drink="${esc(m)}" data-d="1" aria-label="Add a drink for ${esc(m)}" aria-expanded="${open}">+</button></div>
+      ${open?`<div class="types needs-write">${DRINK_TYPES.map((x,i)=>`<button class="type" data-type="${i}" data-for="${esc(m)}"><b>${x[0]}</b><span>${x[1]} · ${n1(x[2])}</span></button>`).join("")}</div>`:""}`}).join("")}
+    <div class="meter"><i style="width:${Math.min(100,s.finished/s.target*100)}%"></i></div>
+    <div class="row" style="justify-content:space-between;margin-top:6px"><b>${s.finished} of ${s.target} finished</b>
+      <span class="chip ${s.left?"bad":"good"}">${s.left?s.left+" left · −"+s.left+" pts":"Goal met 🎉"}</span></div></section>`;
+  const dares=d.dares.slice().reverse();
+  const wheel=`<section class="panel"><h2>🛞 Challenge wheel</h2>
+    <p class="muted" style="margin:0 0 4px">One spin every 15 minutes. One person spins, the whole team does it. Failing a dare is −5.</p>
+    <div class="wheel-box"><div class="pointer"></div><canvas id="wheel" width="640" height="640"></canvas></div>
+    <div class="result" id="result" aria-live="polite">${esc(ui.lastResult)}</div>
+    <div class="row" style="justify-content:center;margin:8px 0 6px"><button class="btn primary needs-write" id="spin" ${ui.spinning?"disabled":""}>Spin for ${esc(t.name)}</button></div>
+    <h3>Spins (${d.dares.length})</h3>
+    ${dares.length?dares.map((x,ri)=>{const i=d.dares.length-1-ri;return `<div class="dare"><span class="n">#${i+1}</span><div><b>${esc(x.text)}</b> <span class="muted" style="font-size:.8rem">at ${esc(x.at||"")}</span></div>
+      <div class="acts needs-write">
+        <button class="seg" data-dare="${i}" data-st="pending" aria-pressed="${x.status==="pending"}">In progress</button>
+        <button class="seg done" data-dare="${i}" data-st="done" aria-pressed="${x.status==="done"}">Done ✓</button>
+        <button class="seg failed" data-dare="${i}" data-st="failed" aria-pressed="${x.status==="failed"}">Failed −5</button>
+        <button class="seg" data-dare="${i}" data-st="remove">Remove</button></div></div>`}).join(""):`<p class="muted">No spins yet. First spin when the clock starts.</p>`}
+  </section>`;
+  const ing=`<section class="panel"><h2>🍽️ Our menu</h2>
+    ${CATS.map(([k,l])=>`<label class="dish"><span class="label">${l}</span><input type="text" class="needs-write" id="dish-${t.id}-${k}" data-dish="${k}" value="${esc(d.dishes[k]||"")}" placeholder="What are you making?"></label>`).join("")}
+  </section>`;
+  return `<div style="display:grid;gap:14px"><section class="panel"><div class="label" style="margin-bottom:8px">Which team are you?</div>${picker}
+    <p class="muted" style="margin:8px 0 0">${t.emoji} cooking at the ${esc(t.house)}</p></section>${banner()}${drinks}${ing}</div><div style="display:grid;gap:14px">${wheel}</div>`;
+}
+function viewJudge(){
+  const opts=v=>`<option value="">–</option>`+Array.from({length:10},(_,i)=>`<option ${v===i+1?"selected":""}>${i+1}</option>`).join("");
+  return TEAMS.map(t=>{const d=state.teams[t.id],s=tally(t);return `<section class="panel" style="border-top:6px solid var(${t.color})">
+    <h2>${t.emoji} ${esc(t.name)}</h2>
+    <div class="scroll"><table class="jtable"><thead><tr><th>Judge</th>${CATS.map(([k,l])=>`<th>${l}${d.dishes[k]?`<div class="muted" style="font-weight:400;font-size:.75rem">${esc(d.dishes[k])}</div>`:""}</th>`).join("")}</tr></thead>
+    <tbody>${judgeKeys().map((j,ji)=>`<tr><td>Judge ${ji+1}</td>${CATS.map(([k])=>`<td><select class="needs-write" id="sc-${t.id}-${j}-${k}" data-score="${t.id}|${j}|${k}" aria-label="Judge ${ji+1} ${k}">${opts(d.scores[j]&&d.scores[j][k])}</select></td>`).join("")}</tr>`).join("")}
+    <tr><td><b>${state.config.judges>1?"Average":"Score"}</b></td>${CATS.map(([k])=>`<td><b>${s.cats[k]===null?"–":n1(s.cats[k])}</b></td>`).join("")}</tr></tbody></table></div>
+    <div class="row" style="justify-content:space-between;margin-top:10px"><span>Judges' total</span><b style="font-family:var(--mono);font-size:1.3rem">${n1(s.judged)} / 30</b></div>
+  </section>`}).join("")+`<p class="guess" style="grid-column:1/-1;margin:0">Guess: with more than one judge, each category uses the average of the judges, so the max stays 30. Set the number of judges in Setup.</p>`;
+}
+function viewSetup(){
+  const c=state.config;
+  return `<section class="panel"><h2>⏰ Competition clock</h2>
+    <p class="muted" style="margin:0 0 10px">2 hours. Start it when everyone is in their kitchen. Every device showing this page follows the same clock.</p>
+    <div class="row needs-write">
+      <button class="btn primary" id="clkGo">${c.running?"Pause":elapsed()>0?"Resume":"Start 2 hours"}</button>
+      <button class="btn" id="clkReset">Reset clock</button></div>
+    <div class="confirm" id="clkConfirm"><span>Reset the clock to 2:00:00?</span><button class="btn danger" id="clkYes">Yes, reset</button><button class="btn" data-cancel>Cancel</button></div>
+    <h3>Judges</h3>
+    <div class="row needs-write"><button class="step" id="jMinus" aria-label="Fewer judges">−</button><span class="count">${c.judges}</span><button class="step" id="jPlus" aria-label="More judges">+</button><span class="muted">judge${c.judges>1?"s":""}</span></div>
+    <h3>Drink counting</h3>
+    <label class="check needs-write"><input type="checkbox" id="stdMode" ${c.stdMode?"checked":""}> Count standard drinks instead of drinks</label>
+    <p class="muted" style="margin:0;font-size:.85rem">Off: every finished drink counts as 1, as the rules say. On: drinks count by alcohol, where a 12 oz 5% beer is 1, a Fireball shot 0.8, a cocktail 1.5. Drinks already logged count as 1 beer each. The goal stays 5 per person either way.</p>
+  </section>
+  <section class="panel"><h2>🎧 Discord and music</h2>
+    <p class="muted" style="margin:0 0 10px">Paste the links and every house gets a button on the leaderboard.</p>
+    <label class="dish"><span class="label">Discord invite link</span><input type="text" class="needs-write" id="discordUrl" data-link="discord" value="${esc(c.discord||"")}" placeholder="https://discord.gg/…"></label>
+    <label class="dish"><span class="label">Spotify Jam link</span><input type="text" class="needs-write" id="jamUrl" data-link="jam" value="${esc(c.jam||"")}" placeholder="https://spotify.link/…"></label>
+    <span id="linkMsg" class="muted"></span>
+  </section>
+  <section class="panel"><h2>🛞 Wheel slots</h2>
+    <p class="muted" style="margin:0 0 8px">One dare per line. Changes apply to every team's wheel.</p>
+    <textarea id="wheelText" class="needs-write" aria-label="Wheel slots">${esc(c.wheel.join("\n"))}</textarea>
+    <div class="row needs-write" style="margin-top:8px"><button class="btn primary" id="wheelSave">Save wheel</button><button class="btn" id="wheelDefault">Use sample dares</button><span id="wheelMsg" class="muted"></span></div>
+    <p class="guess" style="margin:8px 0 0">Guess: these sample dares are placeholders. Swap in your own.</p>
+  </section>
+  <section class="panel"><h2>Start over</h2>
+    <p class="muted" style="margin:0 0 10px">Clears drinks, spins, scores, ingredients and the clock for all teams. Keeps the wheel slots.</p>
+    <button class="btn danger needs-write" id="wipe">Clear all results</button>
+    <div class="confirm" id="wipeConfirm"><span>This can't be undone.</span><button class="btn danger" id="wipeYes">Clear everything</button><button class="btn" data-cancel>Cancel</button></div>
+  </section>`;
+}
+
+/* ---------- wheel ---------- */
+let wheelRot=0;
+function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim()}
+function drawWheel(){
+  const cv=$("#wheel");if(!cv)return;
+  const ctx=cv.getContext("2d"),slots=state.config.wheel.length?state.config.wheel:["Add dares in Setup"];
+  const R=318,cx=320,cy=320,a=2*Math.PI/slots.length;
+  const pal=[css("--t-garrett"),css("--t-jessop"),css("--t-ben"),css("--accent"),css("--good")];
+  ctx.clearRect(0,0,640,640);
+  slots.forEach((s,i)=>{
+    const s0=-Math.PI/2+i*a;
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,R,s0,s0+a);ctx.closePath();
+    ctx.fillStyle=pal[i%pal.length];ctx.globalAlpha=i%2?0.82:1;ctx.fill();ctx.globalAlpha=1;
+    ctx.strokeStyle="rgba(255,255,255,.7)";ctx.lineWidth=3;ctx.stroke();
+    ctx.save();ctx.translate(cx,cy);ctx.rotate(s0+a/2);ctx.fillStyle="#fff";ctx.textAlign="right";ctx.textBaseline="middle";
+    const fs=slots.length>14?17:21;ctx.font=`700 ${fs}px "DM Sans", system-ui, sans-serif`;
+    let txt=s;const maxW=R-70;while(ctx.measureText(txt).width>maxW&&txt.length>4)txt=txt.slice(0,-2);
+    if(txt!==s)txt=txt.trimEnd()+"…";
+    ctx.fillText(txt,R-18,0);ctx.restore();
+  });
+  ctx.beginPath();ctx.arc(cx,cy,38,0,2*Math.PI);ctx.fillStyle=css("--surface");ctx.fill();
+  ctx.font="34px system-ui";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText("🎲",cx,cy+2);
+  cv.style.transition="none";cv.style.transform=`rotate(${wheelRot}deg)`;void cv.offsetWidth;cv.style.transition="";
+}
+function spin(){
+  if(ui.spinning||readOnly)return;
+  const slots=state.config.wheel;if(!slots.length)return;
+  const cv=$("#wheel"),i=Math.floor(Math.random()*slots.length),a=360/slots.length;
+  const jitter=(Math.random()-.5)*a*.6;
+  const target=((-(i+.5)*a+jitter)%360+360)%360;
+  const base=wheelRot-(wheelRot%360);
+  wheelRot=base+360*6+target;
+  ui.spinning=true;ui.lastResult="Spinning…";$("#result").textContent=ui.lastResult;$("#spin").disabled=true;
+  const teamId=ui.team;
+  const finish=()=>{
+    ui.spinning=false;ui.lastResult="🎯 "+slots[i];
+    const at=state.config.running||elapsed()>0?fmt(elapsed(),true)+" in":new Date().toLocaleTimeString([], {hour:"numeric",minute:"2-digit"});
+    state.teams[teamId].dares.push({text:slots[i],status:"pending",at});
+    saveTeam(teamId);render();
+  };
+  let fired=false;const once=()=>{if(!fired){fired=true;finish()}};
+  cv.addEventListener("transitionend",once,{once:true});setTimeout(once,4600);
+  cv.style.transform=`rotate(${wheelRot}deg)`;
+}
+
+/* ---------- render + events ---------- */
+let lastHtml="";
+function render(fromRemote){
+  const v=$("#view");
+  // avoid clobbering a field someone is typing in when a remote update lands
+  const ae=document.activeElement;
+  if(fromRemote&&ui.spinning)return;
+  if(fromRemote&&ae&&(ae.tagName==="TEXTAREA"||(ae.tagName==="INPUT"&&ae.type==="text")))return;
+  document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===ui.tab));
+  v.className=ui.tab==="board"?"":"two";
+  const html=ui.tab==="board"?viewBoard():ui.tab==="team"?viewTeam():ui.tab==="judge"?viewJudge():viewSetup();
+  if(html!==lastHtml||!fromRemote){v.innerHTML=html;lastHtml=html}
+  if(ui.tab==="team")drawWheel();
+  tick();
+}
+function tick(){
+  const e=elapsed(),left=DURATION-e,c=state.config;
+  $("#clock").textContent=fmt(left,true);
+  let sub,due=false;
+  if(!c.running&&e===0)sub="Clock not started";
+  else if(left<=0)sub="Time! Pencils down 🍽️";
+  else{const toSpin=SPIN_EVERY-(e%SPIN_EVERY);due=c.running&&toSpin>SPIN_EVERY-60000;
+    sub=(c.running?"":"Paused · ")+(due?"🛞 SPIN THE WHEEL!":"Next spin in "+fmt(toSpin))}
+  $("#clockSub").textContent=sub;
+  $("#bar").classList.toggle("due",due||(left<=0&&e>0&&left>-30000));
+}
+setInterval(tick,500);
+
+document.addEventListener("click",ev=>{
+  const b=ev.target.closest("button");if(!b)return;
+  if(b.dataset.tab){ui.tab=b.dataset.tab;saveUi();render();return}
+  if(b.dataset.pick){ui.team=b.dataset.pick;ui.lastResult="";saveUi();render();return}
+  if(b.hasAttribute("data-cancel")){b.closest(".confirm").classList.remove("show");return}
+  if(readOnly)return;
+  if(b.dataset.drink){const log=state.teams[ui.team].drinkLog,m=b.dataset.drink;
+    if(b.dataset.d==="1"&&state.config.stdMode){ui.pickFor=ui.pickFor===m?null:m;render();return}
+    log[m]=log[m]||[];if(b.dataset.d==="1")log[m].push(1);else log[m].pop();
+    ui.pickFor=null;saveTeam(ui.team);render();return}
+  if(b.dataset.type){const log=state.teams[ui.team].drinkLog,m=b.dataset.for;(log[m]=log[m]||[]).push(DRINK_TYPES[Number(b.dataset.type)][2]);
+    ui.pickFor=null;saveTeam(ui.team);render();return}
+  if(b.dataset.dare){const list=state.teams[ui.team].dares,i=Number(b.dataset.dare);
+    if(b.dataset.st==="remove")list.splice(i,1);else list[i].status=b.dataset.st;saveTeam(ui.team);render();return}
+  const c=state.config;
+  switch(b.id){
+    case "spin":spin();break;
+    case "clkGo":
+      if(c.running){c.banked=elapsed();c.running=false}else{c.startAt=Date.now();c.running=true;
+        try{navigator.wakeLock&&navigator.wakeLock.request("screen").catch(()=>{})}catch(e){}}
+      saveConfig();render();break;
+    case "clkReset":$("#clkConfirm").classList.add("show");break;
+    case "clkYes":c.running=false;c.banked=0;c.startAt=0;saveConfig();render();break;
+    case "jMinus":c.judges=Math.max(1,c.judges-1);saveConfig();render();break;
+    case "jPlus":c.judges=Math.min(6,c.judges+1);saveConfig();render();break;
+    case "wheelSave":{const lines=$("#wheelText").value.split("\n").map(s=>s.trim()).filter(Boolean).slice(0,24);
+      c.wheel=lines;saveConfig();render();$("#wheelMsg").textContent="Saved "+lines.length+" slots";break}
+    case "wheelDefault":$("#wheelText").value=DEFAULT_WHEEL.join("\n");$("#wheelMsg").textContent="Tap Save wheel to keep these";break;
+    case "wipe":$("#wipeConfirm").classList.add("show");break;
+    case "wipeYes":for(const t of TEAMS){state.teams[t.id]=blankTeam();saveTeam(t.id)}
+      c.running=false;c.banked=0;c.startAt=0;saveConfig();ui.lastResult="";render();break;
+  }
+});
+document.addEventListener("change",ev=>{
+  const el=ev.target;if(readOnly)return;
+  if(el.id==="stdMode"){state.config.stdMode=el.checked;ui.pickFor=null;saveConfig();render()}
+  else if(el.dataset.link){const v=el.value.trim();
+    if(v&&!safeUrl(v)){$("#linkMsg").textContent="Links need to start with https://";return}
+    state.config[el.dataset.link]=v;saveConfig();$("#linkMsg").textContent="Saved"}
+  else if(el.dataset.dish!==undefined){state.teams[ui.team].dishes[el.dataset.dish]=el.value.slice(0,80);saveTeam(ui.team)}
+  else if(el.dataset.score){const [tid,j,k]=el.dataset.score.split("|"),sc=state.teams[tid].scores;
+    sc[j]=sc[j]||{};if(el.value==="")delete sc[j][k];else sc[j][k]=Number(el.value);saveTeam(tid);render()}
+});
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>ui.tab==="team"&&drawWheel());
+render();
+})();
+</script>
+
+</body></html>
