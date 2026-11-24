@@ -498,11 +498,11 @@ let muted=false,actx=null,alertKey="",lastChime=0,lastOwed=0;
 try{muted=localStorage.getItem(LS+"-mute")==="1"}catch(e){}
 /* browsers only allow sound after a tap, so unlock audio on the first one */
 function unlockAudio(){try{if(!actx){const A=window.AudioContext||window.webkitAudioContext;if(A)actx=new A()}
-  if(actx&&actx.state==="suspended")actx.resume()}catch(e){}}
+  if(actx&&actx.state==="suspended")actx.resume().then(()=>spinAlert(),()=>{})}catch(e){}}
 document.addEventListener("pointerdown",unlockAudio,{passive:true});
 document.addEventListener("keydown",unlockAudio);
 function chime(){
-  if(muted||!actx||actx.state!=="running")return;
+  if(muted||!actx||actx.state!=="running")return false;
   const t0=actx.currentTime;
   [[659,0],[880,.18],[1175,.36],[880,.7],[1175,.88]].forEach(([f,d])=>{
     const o=actx.createOscillator(),g=actx.createGain();
@@ -511,6 +511,7 @@ function chime(){
     o.connect(g).connect(actx.destination);o.start(t0+d);o.stop(t0+d+.35);
   });
   try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}
+  return true;
 }
 function spinAlert(){
   const t=teamById(ui.team),n=owed(t.id),box=$("#spinAlert");
@@ -522,9 +523,9 @@ function spinAlert(){
     $("#spinMsg").innerHTML=`<b>${esc(t.name)}: spin the wheel</b><span>${n>1?n+" spins owed. ":""}This stays up until your team spins.</span>`;
     $("#spinMute").textContent=muted?"Sound off":"Mute";$("#spinMute").setAttribute("aria-pressed",muted);
   }
-  /* chime when a new spin comes due, then again every 45 seconds until someone spins */
+  /* alarm repeats every 4 seconds until the spin lands; a chime that the browser blocked (no tap yet) is retried next tick */
   const now=Date.now();
-  if(n>lastOwed||now-lastChime>45000){lastChime=now;chime()}
+  if(now-lastChime>=4000&&chime())lastChime=now;
   lastOwed=n;
 }
 function goSpin(){
