@@ -9,47 +9,40 @@
 <style>
 /* Layout: sticky clock bar, tab row, one stacked column of panels (phone first, 2 columns on wide screens) */
 :root{
-  --bg:#fff7f5; --surface:#ffffff; --sunk:#f6ebe8; --line:#ead8d3;
-  --fg:#2a1619; --muted:#7a5d61;
-  --accent:#b3123f;          /* cranberry */
-  --accent-fg:#ffffff;
-  --good:#2f7d32; --bad:#c62828; --warn:#b86b00;
-  --t-garrett:#d7261e; --t-jessop:#e07b12; --t-ben:#1f5fa8;
+  /* one dark look, by request: charcoal with a mint accent, no red */
+  --bg:#121417; --surface:#1b1e23; --sunk:#252930; --line:#30353d;
+  --fg:#eef0f3; --muted:#9aa1ac;
+  --accent:#7dd3a8; --accent-fg:#0e1a14;
+  --good:#7dd3a8; --bad:#f0a35e; --warn:#e8c468;
+  --t-garrett:#f0a35e; --t-jessop:#b79cf0; --t-ben:#6cb4ee;
   --display:"Bricolage Grotesque", "Arial Black", system-ui, sans-serif;
   --body:"DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
-  --r:14px;
+  --r:8px; --r-sm:6px;
+  color-scheme:dark;
 }
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#170e10; --surface:#22161a; --sunk:#2c1d21; --line:#3e2a2f;
-  --fg:#f8ecee; --muted:#c3a3a9; --accent:#ff4f7b; --accent-fg:#1b0a0e;
-  --good:#6fcf73; --bad:#ff6b6b; --warn:#ffb648;
-  --t-garrett:#ff5a4f; --t-jessop:#ffa143; --t-ben:#5fa2ff; color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#170e10; --surface:#22161a; --sunk:#2c1d21; --line:#3e2a2f;
-  --fg:#f8ecee; --muted:#c3a3a9; --accent:#ff4f7b; --accent-fg:#1b0a0e;
-  --good:#6fcf73; --bad:#ff6b6b; --warn:#ffb648;
-  --t-garrett:#ff5a4f; --t-jessop:#ffa143; --t-ben:#5fa2ff; color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.45}
-body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--accent)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .wrap{max-width:1040px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 
 /* clock bar */
-.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--accent);color:var(--accent-fg)}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);color:var(--fg);border-bottom:1px solid var(--line)}
+.bar .clock{color:var(--accent)}
 .bar .wrap{display:flex;align-items:center;gap:12px;padding-block:10px;flex-wrap:wrap}
 .brand{font-family:var(--display);font-weight:800;font-size:1.15rem;letter-spacing:-.01em;line-height:1.1;flex:1 1 auto;min-width:0}
 .brand small{display:block;font-family:var(--body);font-weight:500;font-size:.75rem;opacity:.85;letter-spacing:.02em}
 .clock{font-family:var(--mono);font-size:1.6rem;font-variant-numeric:tabular-nums;line-height:1}
 .clock-sub{font-size:.75rem;opacity:.9;text-align:right}
 .bar.due{animation:pulse 1s ease-in-out infinite alternate}
-@keyframes pulse{from{filter:none}to{filter:brightness(1.25) saturate(1.2)}}
+@keyframes pulse{from{background:var(--surface)}to{background:var(--sunk)}}
+.bar.due .clock-sub{color:var(--warn);font-weight:700}
 
 nav.tabs{display:flex;gap:6px;padding-block:12px;overflow-x:auto}
-nav.tabs button{flex:1 1 auto;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 10px;font-weight:700;font-size:.88rem;white-space:nowrap}
+nav.tabs button{flex:1 1 auto;border:1px solid var(--line);background:var(--surface);border-radius:var(--r-sm);padding:8px 10px;font-weight:700;font-size:.88rem;white-space:nowrap}
 nav.tabs button[aria-selected="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
 
 main{display:grid;gap:14px;padding-bottom:40px}
@@ -61,9 +54,9 @@ h3{font-family:var(--display);font-weight:500;font-size:1.05rem;margin:14px 0 6p
 .muted{color:var(--muted)}
 .guess{font-size:.78rem;color:var(--warn);font-weight:500}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.btn{border:0;border-radius:10px;padding:10px 16px;font-weight:700;background:var(--sunk)}
+.btn{border:0;border-radius:var(--r-sm);padding:10px 16px;font-weight:700;background:var(--sunk)}
 .btn.primary{background:var(--accent);color:var(--accent-fg)}
-.btn.danger{background:var(--bad);color:#fff}
+.btn.danger{background:var(--bad);color:var(--bg)}
 .btn:disabled{opacity:.45;cursor:not-allowed}
 .ro .needs-write{pointer-events:none;opacity:.5}
 
@@ -73,23 +66,24 @@ h3{font-family:var(--display);font-weight:500;font-size:1.05rem;margin:14px 0 6p
 .rank{font-family:var(--display);font-weight:800;font-size:2rem;width:2ch;text-align:center;color:var(--tc)}
 .lb-name{font-family:var(--display);font-weight:800;font-size:1.2rem}
 .lb-break{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
-.chip{font-size:.75rem;padding:2px 8px;border-radius:999px;background:var(--sunk);font-variant-numeric:tabular-nums;white-space:nowrap}
+.chip{font-size:.75rem;padding:2px 8px;border-radius:var(--r-sm);background:var(--sunk);font-variant-numeric:tabular-nums;white-space:nowrap}
 .chip.bad{color:var(--bad)} .chip.good{color:var(--good)} .chip.warn{color:var(--warn)}
 .score{font-family:var(--mono);font-size:1.8rem;font-variant-numeric:tabular-nums;text-align:right}
 .score small{display:block;font-family:var(--body);font-size:.7rem;color:var(--muted)}
 
 /* team picker */
 .picker{display:flex;gap:8px;flex-wrap:wrap}
-.picker button{border:2px solid var(--tc);background:transparent;border-radius:999px;padding:8px 14px;font-weight:700;color:var(--fg)}
-.picker button[aria-pressed="true"]{background:var(--tc);color:#fff}
+.picker button{border:2px solid var(--tc);background:transparent;border-radius:var(--r-sm);padding:8px 14px;font-weight:700;color:var(--fg)}
+.picker button[aria-pressed="true"]{background:var(--tc);color:var(--bg)}
 
 /* drinks */
 .drink-row{display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center;padding-block:6px;border-bottom:1px dashed var(--line)}
 .drink-row:last-of-type{border-bottom:0}
-.step{width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--sunk);font-size:1.3rem;font-weight:700}
+.step{width:44px;height:44px;border-radius:var(--r-sm);border:1px solid var(--line);background:var(--sunk);font-size:1.3rem;font-weight:700}
 .count{font-family:var(--mono);font-size:1.3rem;min-width:2.5ch;text-align:center;font-variant-numeric:tabular-nums}
-.glasses{font-size:.95rem;letter-spacing:1px;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:clip}
-.meter{height:14px;border-radius:999px;background:var(--sunk);overflow:hidden;margin-top:10px}
+.glasses{display:flex;gap:3px;margin-top:4px;min-width:0;overflow:hidden}
+.glasses i{width:10px;height:10px;border-radius:2px;background:var(--tc);flex:none}
+.meter{height:10px;border-radius:3px;background:var(--sunk);overflow:hidden;margin-top:10px}
 .meter i{display:block;height:100%;background:var(--tc);transition:width .3s}
 
 /* wheel */
@@ -101,17 +95,17 @@ h3{font-family:var(--display);font-weight:500;font-size:1.05rem;margin:14px 0 6p
 .dare:last-child{border-bottom:0}
 .dare .n{font-family:var(--mono);color:var(--muted)}
 .dare .acts{grid-column:2;display:flex;gap:6px;flex-wrap:wrap}
-.seg{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:6px 10px;font-weight:700;font-size:.85rem}
-.seg[aria-pressed="true"].done{background:var(--good);color:#fff;border-color:var(--good)}
-.seg[aria-pressed="true"].failed{background:var(--bad);color:#fff;border-color:var(--bad)}
+.seg{border:1px solid var(--line);background:var(--surface);border-radius:var(--r-sm);padding:6px 10px;font-weight:700;font-size:.85rem}
+.seg[aria-pressed="true"].done{background:var(--good);color:var(--bg);border-color:var(--good)}
+.seg[aria-pressed="true"].failed{background:var(--bad);color:var(--bg);border-color:var(--bad)}
 
 /* banner + links + drink types */
 .banner{background:var(--sunk);border-style:dashed;display:grid;gap:8px}
 .ing{display:flex;flex-wrap:wrap;gap:8px}
-.ing span{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-weight:700}
+.ing span{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:6px 12px;font-weight:700}
 a.link{text-decoration:none;display:inline-block}
 .types{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px;padding:4px 0 10px}
-.type{border:1px solid var(--line);background:var(--sunk);border-radius:10px;padding:8px;text-align:left;display:grid;gap:2px}
+.type{border:1px solid var(--line);background:var(--sunk);border-radius:var(--r-sm);padding:8px;text-align:left;display:grid;gap:2px}
 .type span{font-size:.75rem;color:var(--muted)}
 /* checklist */
 .check{display:flex;gap:10px;align-items:center;padding:8px 0}
@@ -120,13 +114,13 @@ a.link{text-decoration:none;display:inline-block}
 /* judging */
 .jtable{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
 .jtable th,.jtable td{padding:6px 4px;text-align:left;border-bottom:1px solid var(--line)}
-.jtable select{width:100%;min-width:56px;padding:8px 4px;border-radius:8px;border:1px solid var(--line);background:var(--sunk)}
+.jtable select{width:100%;min-width:56px;padding:8px 4px;border-radius:var(--r-sm);border:1px solid var(--line);background:var(--sunk)}
 .scroll{overflow-x:auto}
-input[type=text],textarea{width:100%;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--sunk)}
+input[type=text],textarea{width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--line);background:var(--sunk)}
 textarea{min-height:260px;line-height:1.5}
 .dish{display:grid;gap:6px;margin-bottom:12px}
 
-.sync{font-size:.75rem;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.2)}
+.sync{font-size:.72rem;padding:1px 6px;border-radius:var(--r-sm);background:var(--sunk);color:var(--muted)}
 .confirm{display:none;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
 .confirm.show{display:flex}
 @media (prefers-reduced-motion:reduce){.wheel-box canvas{transition-duration:.6s}.bar.due{animation:none}}
@@ -154,11 +148,11 @@ textarea{min-height:260px;line-height:1.5}
 (function(){
 "use strict";
 const TEAMS=[
-  {id:"garrett",name:"Team Garrett",emoji:"🌶️",house:"Jimenez household",members:["Garrett","Allie","Ty","Dom"],color:"--t-garrett"},
-  {id:"jessop",name:"Team Jessop",emoji:"👨‍🦰",house:"Grandma Jessop household",members:["Jessop","Keegan","Alli","Katie","Henry"],color:"--t-jessop"},
-  {id:"ben",name:"Team Ben",emoji:"🦅",house:"Jessop household",members:["Ben","Sarah","Amaya","Mitza"],color:"--t-ben"}
+  {id:"garrett",name:"Team Garrett",members:["Garrett","Allie","Ty","Dom"],color:"--t-garrett"},
+  {id:"jessop",name:"Team Jessop",members:["Jessop","Keegan","Alli","Katie","Henry"],color:"--t-jessop"},
+  {id:"ben",name:"Team Ben",members:["Ben","Sarah","Amaya","Mitza"],color:"--t-ben"}
 ];
-const INGREDIENTS=["Fresh ginger 🫚","Zucchini 🥒","Canned cranberry sauce","Cream cheese 🥯"];
+const INGREDIENTS=["Fresh ginger","Zucchini","Canned cranberry sauce","Cream cheese"];
 /* Standard drink = 0.6 oz of pure alcohol (a 12 oz 5% beer). Values rounded to 0.1. */
 const DRINK_TYPES=[
   ["Beer / seltzer","12 oz · 5%",1],["Light beer","12 oz · 4%",0.8],["IPA / strong beer","12 oz · 7%",1.4],
@@ -179,18 +173,18 @@ const FIREBASE_CONFIG={
 const CATS=[["entree","Entree"],["drink","Drink"],["dessert","Dessert / side"]];
 const DURATION=120*60*1000, SPIN_EVERY=15*60*1000, DRINKS_PER=5, DARE_PENALTY=5;
 const DEFAULT_WHEEL=[
-  "Whole team takes a shot 🥃",
+  "Whole team takes a shot",
   "Cook one-handed for 5 minutes",
   "Speak only in accents for 15 minutes",
   "Dance break: 1 full song, no cooking",
   "FaceTime another team and trash talk",
   "Silent kitchen for 5 minutes",
-  "Waterfall 🍻",
+  "Waterfall",
   "Swap jobs with a teammate",
   "Put on a costume piece (or make one)",
   "Sing everything you say for 5 minutes",
   "Finish your current drink",
-  "Free pass! 🎉"
+  "Free pass"
 ];
 const blankTeam=()=>({drinks:{},drinkLog:{},dares:[],scores:{},dishes:{}});
 /* bring older saves (plain counts) and Firebase's dropped empty fields into shape */
@@ -204,7 +198,7 @@ function normTeam(raw){
   return d;
 }
 const state={
-  config:{running:false,startAt:0,banked:0,judges:2,wheel:DEFAULT_WHEEL.slice(),stdMode:false,discord:"",jam:""},
+  config:{running:false,startAt:0,banked:0,judges:2,wheel:DEFAULT_WHEEL.slice(),stdMode:false},
   teams:Object.fromEntries(TEAMS.map(t=>[t.id,blankTeam()]))
 };
 const ui={tab:"board",team:"garrett",spinning:false,lastResult:""};
@@ -318,48 +312,40 @@ function viewBoard(){
   <div class="lb">${rows.map((r,i)=>{const s=r.s;return `
     <div class="lb-card" style="--tc:var(${r.t.color})">
       <div class="rank">${i+1}</div>
-      <div style="min-width:0"><div class="lb-name">${r.t.emoji} ${esc(r.t.name)}</div>
+      <div style="min-width:0"><div class="lb-name">${esc(r.t.name)}</div>
         <div class="muted" style="font-size:.8rem">${esc(r.t.members.join(", "))}</div>
         <div class="lb-break">
           <span class="chip">Judges ${n1(s.judged)}/30</span>
-          <span class="chip ${s.left?"bad":"good"}">🍹 ${s.finished}/${s.target}${s.left?" · −"+s.left:""}</span>
-          <span class="chip ${s.fails?"bad":""}">🛞 ${state.teams[r.t.id].dares.length} spins${s.fails?" · −"+s.fails*DARE_PENALTY:""}</span>
+          <span class="chip ${s.left?"bad":"good"}">Drinks ${n1(s.finished)}/${s.target}${s.left?" · −"+n1(s.left):""}</span>
+          <span class="chip ${s.fails?"bad":""}">${state.teams[r.t.id].dares.length} spin${state.teams[r.t.id].dares.length===1?"":"s"}${s.fails?" · −"+s.fails*DARE_PENALTY:""}</span>
         </div></div>
       <div class="score">${n1(s.total)}<small>points</small></div>
     </div>`}).join("")}</div></section>
-  ${hangout()}${banner()}`;
+  ${banner()}`;
 }
 function banner(){
-  return `<section class="panel banner"><div class="label">Every dish menu must use</div>
+  return `<section class="panel banner"><div class="label">Required ingredients</div>
     <div class="ing">${INGREDIENTS.map(i=>`<span>${i}</span>`).join("")}</div>
-    <div class="muted" style="font-size:.85rem">Make an entree, a drink, and a dessert or side. Costumes highly encouraged 👯</div></section>`;
-}
-const safeUrl=u=>/^https:\/\/[^\s"'<>]+$/.test(u||"")?u:"";
-function hangout(){
-  const c=state.config,dc=safeUrl(c.discord),jm=safeUrl(c.jam);
-  if(!dc&&!jm)return `<section class="panel"><h2>🎧 Hang out</h2><p class="muted" style="margin:0">Add your Discord invite and Spotify Jam link in Setup and they'll show up here for every house.</p></section>`;
-  return `<section class="panel"><h2>🎧 Hang out</h2><div class="row">
-    ${dc?`<a class="btn primary link" href="${esc(dc)}" target="_blank" rel="noopener">💬 Join the Discord</a>`:""}
-    ${jm?`<a class="btn primary link" href="${esc(jm)}" target="_blank" rel="noopener">🎶 Join the Spotify Jam</a>`:""}</div></section>`;
+    <div class="muted" style="font-size:.85rem">Make an entree, a drink, and a dessert or side.</div></section>`;
 }
 function viewTeam(){
   const t=teamById(ui.team),d=state.teams[t.id],s=tally(t);
-  const picker=`<div class="picker">${TEAMS.map(x=>`<button data-pick="${x.id}" style="--tc:var(${x.color})" aria-pressed="${x.id===t.id}">${x.emoji} ${esc(x.name)}</button>`).join("")}</div>`;
-  const drinks=`<section class="panel" style="--tc:var(${t.color})"><h2>🍻 Drinks</h2>
+  const picker=`<div class="picker">${TEAMS.map(x=>`<button data-pick="${x.id}" style="--tc:var(${x.color})" aria-pressed="${x.id===t.id}">${esc(x.name)}</button>`).join("")}</div>`;
+  const drinks=`<section class="panel" style="--tc:var(${t.color})"><h2>Drinks</h2>
     <p class="muted" style="margin:0 0 6px">Goal: ${DRINKS_PER} each, ${s.target} total. The split doesn't need to be even. ${state.config.stdMode
       ?"<b>Standard drink mode:</b> tap + and pick what was finished. A 12 oz beer counts as 1, a Fireball shot as 0.8."
       :"Tap + when a drink is fully finished; half a drink still counts as left over."}</p>
     ${t.members.map(m=>{const l=d.drinkLog[m]||[],c=drunk(d,m),open=ui.pickFor===m&&state.config.stdMode;return `<div class="drink-row">
-      <div style="min-width:0"><b>${esc(m)}</b><div class="glasses" aria-hidden="true">${"🍹".repeat(Math.min(l.length,12))}${l.length>12?"+":""}</div></div>
+      <div style="min-width:0"><b>${esc(m)}</b><div class="glasses" aria-hidden="true">${"<i></i>".repeat(Math.min(l.length,15))}</div></div>
       <button class="step needs-write" data-drink="${esc(m)}" data-d="-1" aria-label="Remove last drink for ${esc(m)}">−</button>
       <span class="count">${n1(c)}</span>
       <button class="step needs-write" data-drink="${esc(m)}" data-d="1" aria-label="Add a drink for ${esc(m)}" aria-expanded="${open}">+</button></div>
       ${open?`<div class="types needs-write">${DRINK_TYPES.map((x,i)=>`<button class="type" data-type="${i}" data-for="${esc(m)}"><b>${x[0]}</b><span>${x[1]} · ${n1(x[2])}</span></button>`).join("")}</div>`:""}`}).join("")}
     <div class="meter"><i style="width:${Math.min(100,s.finished/s.target*100)}%"></i></div>
     <div class="row" style="justify-content:space-between;margin-top:6px"><b>${s.finished} of ${s.target} finished</b>
-      <span class="chip ${s.left?"bad":"good"}">${s.left?s.left+" left · −"+s.left+" pts":"Goal met 🎉"}</span></div></section>`;
+      <span class="chip ${s.left?"bad":"good"}">${s.left?s.left+" left · −"+s.left+" pts":"Goal met"}</span></div></section>`;
   const dares=d.dares.slice().reverse();
-  const wheel=`<section class="panel"><h2>🛞 Challenge wheel</h2>
+  const wheel=`<section class="panel"><h2>Challenge wheel</h2>
     <p class="muted" style="margin:0 0 4px">One spin every 15 minutes. One person spins, the whole team does it. Failing a dare is −5.</p>
     <div class="wheel-box"><div class="pointer"></div><canvas id="wheel" width="640" height="640"></canvas></div>
     <div class="result" id="result" aria-live="polite">${esc(ui.lastResult)}</div>
@@ -368,29 +354,28 @@ function viewTeam(){
     ${dares.length?dares.map((x,ri)=>{const i=d.dares.length-1-ri;return `<div class="dare"><span class="n">#${i+1}</span><div><b>${esc(x.text)}</b> <span class="muted" style="font-size:.8rem">at ${esc(x.at||"")}</span></div>
       <div class="acts needs-write">
         <button class="seg" data-dare="${i}" data-st="pending" aria-pressed="${x.status==="pending"}">In progress</button>
-        <button class="seg done" data-dare="${i}" data-st="done" aria-pressed="${x.status==="done"}">Done ✓</button>
+        <button class="seg done" data-dare="${i}" data-st="done" aria-pressed="${x.status==="done"}">Done</button>
         <button class="seg failed" data-dare="${i}" data-st="failed" aria-pressed="${x.status==="failed"}">Failed −5</button>
         <button class="seg" data-dare="${i}" data-st="remove">Remove</button></div></div>`}).join(""):`<p class="muted">No spins yet. First spin when the clock starts.</p>`}
   </section>`;
-  const ing=`<section class="panel"><h2>🍽️ Our menu</h2>
+  const ing=`<section class="panel"><h2>Menu</h2>
     ${CATS.map(([k,l])=>`<label class="dish"><span class="label">${l}</span><input type="text" class="needs-write" id="dish-${t.id}-${k}" data-dish="${k}" value="${esc(d.dishes[k]||"")}" placeholder="What are you making?"></label>`).join("")}
   </section>`;
-  return `<div style="display:grid;gap:14px"><section class="panel"><div class="label" style="margin-bottom:8px">Which team are you?</div>${picker}
-    <p class="muted" style="margin:8px 0 0">${t.emoji} cooking at the ${esc(t.house)}</p></section>${banner()}${drinks}${ing}</div><div style="display:grid;gap:14px">${wheel}</div>`;
+  return `<div style="display:grid;gap:14px"><section class="panel">${picker}</section>${banner()}${drinks}${ing}</div><div style="display:grid;gap:14px">${wheel}</div>`;
 }
 function viewJudge(){
   const opts=v=>`<option value="">–</option>`+Array.from({length:10},(_,i)=>`<option ${v===i+1?"selected":""}>${i+1}</option>`).join("");
   return TEAMS.map(t=>{const d=state.teams[t.id],s=tally(t);return `<section class="panel" style="border-top:6px solid var(${t.color})">
-    <h2>${t.emoji} ${esc(t.name)}</h2>
+    <h2>${esc(t.name)}</h2>
     <div class="scroll"><table class="jtable"><thead><tr><th>Judge</th>${CATS.map(([k,l])=>`<th>${l}${d.dishes[k]?`<div class="muted" style="font-weight:400;font-size:.75rem">${esc(d.dishes[k])}</div>`:""}</th>`).join("")}</tr></thead>
     <tbody>${judgeKeys().map((j,ji)=>`<tr><td>Judge ${ji+1}</td>${CATS.map(([k])=>`<td><select class="needs-write" id="sc-${t.id}-${j}-${k}" data-score="${t.id}|${j}|${k}" aria-label="Judge ${ji+1} ${k}">${opts(d.scores[j]&&d.scores[j][k])}</select></td>`).join("")}</tr>`).join("")}
     <tr><td><b>${state.config.judges>1?"Average":"Score"}</b></td>${CATS.map(([k])=>`<td><b>${s.cats[k]===null?"–":n1(s.cats[k])}</b></td>`).join("")}</tr></tbody></table></div>
     <div class="row" style="justify-content:space-between;margin-top:10px"><span>Judges' total</span><b style="font-family:var(--mono);font-size:1.3rem">${n1(s.judged)} / 30</b></div>
-  </section>`}).join("")+`<p class="guess" style="grid-column:1/-1;margin:0">Guess: with more than one judge, each category uses the average of the judges, so the max stays 30. Set the number of judges in Setup.</p>`;
+  </section>`}).join("")+`<p class="muted" style="grid-column:1/-1;margin:0;font-size:.85rem">With more than one judge, each dish gets the judges' average, so the max stays 30.</p>`;
 }
 function viewSetup(){
   const c=state.config;
-  return `<section class="panel"><h2>⏰ Competition clock</h2>
+  return `<section class="panel"><h2>Competition clock</h2>
     <p class="muted" style="margin:0 0 10px">2 hours. Start it when everyone is in their kitchen. Every device showing this page follows the same clock.</p>
     <div class="row needs-write">
       <button class="btn primary" id="clkGo">${c.running?"Pause":elapsed()>0?"Resume":"Start 2 hours"}</button>
@@ -402,17 +387,10 @@ function viewSetup(){
     <label class="check needs-write"><input type="checkbox" id="stdMode" ${c.stdMode?"checked":""}> Count standard drinks instead of drinks</label>
     <p class="muted" style="margin:0;font-size:.85rem">Off: every finished drink counts as 1, as the rules say. On: drinks count by alcohol, where a 12 oz 5% beer is 1, a Fireball shot 0.8, a cocktail 1.5. Drinks already logged count as 1 beer each. The goal stays 5 per person either way.</p>
   </section>
-  <section class="panel"><h2>🎧 Discord and music</h2>
-    <p class="muted" style="margin:0 0 10px">Paste the links and every house gets a button on the leaderboard.</p>
-    <label class="dish"><span class="label">Discord invite link</span><input type="text" class="needs-write" id="discordUrl" data-link="discord" value="${esc(c.discord||"")}" placeholder="https://discord.gg/…"></label>
-    <label class="dish"><span class="label">Spotify Jam link</span><input type="text" class="needs-write" id="jamUrl" data-link="jam" value="${esc(c.jam||"")}" placeholder="https://spotify.link/…"></label>
-    <span id="linkMsg" class="muted"></span>
-  </section>
-  <section class="panel"><h2>🛞 Wheel slots</h2>
+  <section class="panel"><h2>Wheel slots</h2>
     <p class="muted" style="margin:0 0 8px">One dare per line. Changes apply to every team's wheel.</p>
     <textarea id="wheelText" class="needs-write" aria-label="Wheel slots">${esc(c.wheel.join("\n"))}</textarea>
     <div class="row needs-write" style="margin-top:8px"><button class="btn primary" id="wheelSave">Save wheel</button><button class="btn" id="wheelDefault">Use sample dares</button><span id="wheelMsg" class="muted"></span></div>
-    <p class="guess" style="margin:8px 0 0">Guess: these sample dares are placeholders. Swap in your own.</p>
   </section>
   <section class="panel"><h2>Start over</h2>
     <p class="muted" style="margin:0 0 10px">Clears drinks, spins, scores, ingredients and the clock for all teams. Keeps the wheel slots.</p>
@@ -428,21 +406,20 @@ function drawWheel(){
   const cv=$("#wheel");if(!cv)return;
   const ctx=cv.getContext("2d"),slots=state.config.wheel.length?state.config.wheel:["Add dares in Setup"];
   const R=318,cx=320,cy=320,a=2*Math.PI/slots.length;
-  const pal=[css("--t-garrett"),css("--t-jessop"),css("--t-ben"),css("--accent"),css("--good")];
+  const pal=[css("--t-garrett"),css("--t-jessop"),css("--t-ben"),css("--accent"),css("--warn")];
   ctx.clearRect(0,0,640,640);
   slots.forEach((s,i)=>{
     const s0=-Math.PI/2+i*a;
     ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,R,s0,s0+a);ctx.closePath();
-    ctx.fillStyle=pal[i%pal.length];ctx.globalAlpha=i%2?0.82:1;ctx.fill();ctx.globalAlpha=1;
-    ctx.strokeStyle="rgba(255,255,255,.7)";ctx.lineWidth=3;ctx.stroke();
-    ctx.save();ctx.translate(cx,cy);ctx.rotate(s0+a/2);ctx.fillStyle="#fff";ctx.textAlign="right";ctx.textBaseline="middle";
+    ctx.fillStyle=pal[i%pal.length];ctx.globalAlpha=i%2?0.78:1;ctx.fill();ctx.globalAlpha=1;
+    ctx.strokeStyle=css("--surface");ctx.lineWidth=3;ctx.stroke();
+    ctx.save();ctx.translate(cx,cy);ctx.rotate(s0+a/2);ctx.fillStyle="#111418";ctx.textAlign="right";ctx.textBaseline="middle";
     const fs=slots.length>14?17:21;ctx.font=`700 ${fs}px "DM Sans", system-ui, sans-serif`;
     let txt=s;const maxW=R-70;while(ctx.measureText(txt).width>maxW&&txt.length>4)txt=txt.slice(0,-2);
     if(txt!==s)txt=txt.trimEnd()+"…";
     ctx.fillText(txt,R-18,0);ctx.restore();
   });
   ctx.beginPath();ctx.arc(cx,cy,38,0,2*Math.PI);ctx.fillStyle=css("--surface");ctx.fill();
-  ctx.font="34px system-ui";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText("🎲",cx,cy+2);
   cv.style.transition="none";cv.style.transform=`rotate(${wheelRot}deg)`;void cv.offsetWidth;cv.style.transition="";
 }
 function spin(){
@@ -456,7 +433,7 @@ function spin(){
   ui.spinning=true;ui.lastResult="Spinning…";$("#result").textContent=ui.lastResult;$("#spin").disabled=true;
   const teamId=ui.team;
   const finish=()=>{
-    ui.spinning=false;ui.lastResult="🎯 "+slots[i];
+    ui.spinning=false;ui.lastResult=slots[i];
     const at=state.config.running||elapsed()>0?fmt(elapsed(),true)+" in":new Date().toLocaleTimeString([], {hour:"numeric",minute:"2-digit"});
     state.teams[teamId].dares.push({text:slots[i],status:"pending",at});
     saveTeam(teamId);render();
@@ -486,9 +463,9 @@ function tick(){
   $("#clock").textContent=fmt(left,true);
   let sub,due=false;
   if(!c.running&&e===0)sub="Clock not started";
-  else if(left<=0)sub="Time! Pencils down 🍽️";
+  else if(left<=0)sub="Time! Pencils down";
   else{const toSpin=SPIN_EVERY-(e%SPIN_EVERY);due=c.running&&toSpin>SPIN_EVERY-60000;
-    sub=(c.running?"":"Paused · ")+(due?"🛞 SPIN THE WHEEL!":"Next spin in "+fmt(toSpin))}
+    sub=(c.running?"":"Paused · ")+(due?"Spin the wheel now":"Next spin in "+fmt(toSpin))}
   $("#clockSub").textContent=sub;
   $("#bar").classList.toggle("due",due||(left<=0&&e>0&&left>-30000));
 }
@@ -530,14 +507,10 @@ document.addEventListener("click",ev=>{
 document.addEventListener("change",ev=>{
   const el=ev.target;if(readOnly)return;
   if(el.id==="stdMode"){state.config.stdMode=el.checked;ui.pickFor=null;saveConfig();render()}
-  else if(el.dataset.link){const v=el.value.trim();
-    if(v&&!safeUrl(v)){$("#linkMsg").textContent="Links need to start with https://";return}
-    state.config[el.dataset.link]=v;saveConfig();$("#linkMsg").textContent="Saved"}
   else if(el.dataset.dish!==undefined){state.teams[ui.team].dishes[el.dataset.dish]=el.value.slice(0,80);saveTeam(ui.team)}
   else if(el.dataset.score){const [tid,j,k]=el.dataset.score.split("|"),sc=state.teams[tid].scores;
     sc[j]=sc[j]||{};if(el.value==="")delete sc[j][k];else sc[j][k]=Number(el.value);saveTeam(tid);render()}
 });
-window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>ui.tab==="team"&&drawWheel());
 render();
 })();
 </script>
