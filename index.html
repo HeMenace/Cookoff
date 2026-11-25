@@ -162,6 +162,20 @@ input[type=text],textarea,select.in{width:100%;padding:10px;border-radius:var(--
 .ov-note{background:var(--sunk);border-left:6px solid var(--tc,var(--accent));border-radius:var(--r-sm);padding:10px 12px;font-size:.92rem}
 .ov-ok{width:100%;padding:14px;font-size:1.05rem}
 @media (prefers-reduced-motion:reduce){.bar.due,.alert.pulse{animation:none}}
+
+/* Discord layout (per device): the middle stays empty for the Discord video window, panels split left and right */
+body.discord .wrap{max-width:none}
+body.discord main,body.discord main.two{grid-template-columns:minmax(0,1fr) var(--dgap,40vw) minmax(0,1fr);align-items:start;grid-auto-flow:row dense;column-gap:16px}
+body.discord main>*:nth-child(odd){grid-column:1!important}
+body.discord main>*:nth-child(even){grid-column:3!important}
+body.discord nav.tabs{max-width:calc((100% - var(--dgap,40vw))/2 - 16px)}
+body.discord .alert .wrap{max-width:calc((100% - var(--dgap,40vw))/2);margin-left:0}
+body.discord .ov{justify-content:flex-start}
+body.discord .ov-card{width:min(440px,calc((100% - var(--dgap,40vw))/2 - 16px))}
+.dz-guide{position:fixed;top:0;bottom:0;left:50%;transform:translateX(-50%);width:var(--dgap,40vw);border:2px dashed var(--accent);border-block:0;background:rgba(125,211,168,.06);z-index:4;pointer-events:none;display:flex;align-items:center;justify-content:center;color:var(--accent);font-weight:700}
+.rng{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:8px 0;font-weight:700;font-size:.9rem}
+.rng input{width:100%;accent-color:var(--accent)}
+.rng output{font-family:var(--mono);min-width:4ch;text-align:right}
 </style>
 
 <div class="bar" id="bar"><div class="wrap">
@@ -197,6 +211,8 @@ input[type=text],textarea,select.in{width:100%;padding:10px;border-radius:var(--
   </nav>
   <main id="view"></main>
 </div>
+
+<div class="dz-guide" id="dzGuide" hidden>Discord window</div>
 
 <div class="ov" id="ov" role="dialog" aria-modal="true" aria-labelledby="ovHead" hidden><div class="ov-card">
   <div class="ov-head" id="ovHead"></div>
@@ -295,6 +311,20 @@ try{const s=JSON.parse(localStorage.getItem(LS)||"null");
 normConfig();
 function saveLocal(){try{localStorage.setItem(LS,JSON.stringify(state))}catch(e){}}
 function saveUi(){try{localStorage.setItem(LS+"-ui",JSON.stringify({tab:ui.tab,team:ui.team}))}catch(e){}}
+/* screen layout for this device only: Discord gap (% of screen width) and overall size (%) */
+const DZ_DEFAULT={on:false,gap:40,scale:100};
+const dz=Object.assign({},DZ_DEFAULT);
+try{Object.assign(dz,JSON.parse(localStorage.getItem(LS+"-screen")||"{}")||{})}catch(e){}
+function saveDz(){try{localStorage.setItem(LS+"-screen",JSON.stringify(dz))}catch(e){}}
+function applyDz(){
+  const z=dz.scale/100;
+  document.body.classList.toggle("discord",!!dz.on);
+  document.body.style.zoom=z===1?"":String(z);
+  /* zoom scales px inside the page, so divide it back out to keep the gap a true share of the screen */
+  document.documentElement.style.setProperty("--dgap",Math.round(window.innerWidth*dz.gap/100/z)+"px");
+  const g=document.getElementById("dzGuide");if(g)g.hidden=!(dz.on&&ui.tab==="setup");
+}
+window.addEventListener("resize",applyDz);
 /* popups and banners this device already acknowledged */
 const acks=new Set();
 try{(JSON.parse(localStorage.getItem(LS+"-acks")||"[]")||[]).forEach(x=>acks.add(x))}catch(e){}
@@ -563,6 +593,13 @@ function viewSetup(){
     <label class="check needs-write"><input type="checkbox" id="stdMode" ${c.stdMode?"checked":""}> Count standard drinks instead of drinks</label>
     <p class="muted" style="margin:0;font-size:.85rem">Off: every finished drink counts as 1, as the rules say. On: drinks count by alcohol, where a 12 oz 5% beer is 1, a Fireball shot 0.8, a cocktail 1.5. Drinks already logged count as 1 beer each. The goal stays 5 per person either way.</p>
   </section>
+  <section class="panel"><h2>This screen</h2>
+    <p class="muted" style="margin:0 0 4px;font-size:.85rem">Only changes this device. Discord layout keeps the middle of the screen empty so the Discord video window can sit there, with the app split on both sides. The dashed box shows the gap while you're on this tab.</p>
+    <label class="check"><input type="checkbox" id="dzOn" ${dz.on?"checked":""}> Discord layout</label>
+    <label class="rng" ${dz.on?"":"hidden"}>Middle gap <input type="range" id="dzGap" min="15" max="70" step="1" value="${dz.gap}"><output id="dzGapOut">${dz.gap}%</output></label>
+    <label class="rng">Size <input type="range" id="dzScale" min="60" max="160" step="5" value="${dz.scale}"><output id="dzScaleOut">${dz.scale}%</output></label>
+    <button class="btn" id="dzReset">Reset this screen</button>
+  </section>
   <section class="panel"><h2>Sounds</h2>
     <p class="muted" style="margin:0 0 4px;font-size:.85rem">Shared by every device. A phone can only play sound after someone taps the page once, so tap anywhere after opening it.</p>
     ${SOUND_EVENTS.map(([k,l])=>`<div class="snd"><span>${l}</span><select class="in needs-write" data-sound="${k}" aria-label="${l}">${SOUNDS.map(([v,n])=>`<option value="${v}" ${c.sounds[k]===v?"selected":""}>${n}</option>`).join("")}</select><button class="btn" data-test="${k}">Play</button></div>`).join("")}
@@ -741,12 +778,12 @@ function render(fromRemote){
   const v=$("#view");
   // avoid clobbering a field someone is typing in when a remote update lands
   const ae=document.activeElement;
-  if(fromRemote&&ae&&(ae.tagName==="TEXTAREA"||(ae.tagName==="INPUT"&&ae.type==="text")))return;
+  if(fromRemote&&ae&&(ae.tagName==="TEXTAREA"||(ae.tagName==="INPUT"&&(ae.type==="text"||ae.type==="range"))))return;
   document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===ui.tab));
   v.className=ui.tab==="board"?"":"two";
   const html=ui.tab==="board"?viewBoard():ui.tab==="team"?viewTeam():ui.tab==="judge"?viewJudge():viewSetup();
   if(html!==lastHtml||!fromRemote){v.innerHTML=html;lastHtml=html;if(ui.tab==="team")drawWheelOn($("#wheel"),state.config.wheel.map(s=>s.text))}
-  tick();
+  applyDz();tick();
 }
 let prevLeft=null;
 function tick(){
@@ -858,6 +895,7 @@ document.addEventListener("click",ev=>{
   if(b.hasAttribute("data-cancel")){b.closest(".confirm").classList.remove("show");ui.confirmSpin=false;return}
   if(b.hasAttribute("data-mute")){muted=!muted;try{localStorage.setItem(LS+"-mute",muted?"1":"0")}catch(e){}if(!muted)lastChime=0;syncMute();return}
   if(b.dataset.test){play(state.config.sounds[b.dataset.test]);return}
+  if(b.id==="dzReset"){Object.assign(dz,DZ_DEFAULT);saveDz();render();return}
   if(b.id==="ovOk"){if(ov.id)ack(ov.id);closeOverlay();render();return}
   if(b.id==="evOk"){if(b.dataset.ack)ack(b.dataset.ack);evKey="";tick();return}
   if(readOnly)return;
@@ -907,12 +945,17 @@ document.addEventListener("click",ev=>{
 /* wheel edits stay in a draft until Save wheel, so a sync from another phone can't wipe them mid-edit */
 function draft(){if(!ui.wheelDraft)ui.wheelDraft=clone(state.config.wheel);return ui.wheelDraft}
 document.addEventListener("input",ev=>{
-  const el=ev.target;if(el.dataset.slot===undefined||el.type==="checkbox")return;
+  const el=ev.target;
+  if(el.id==="dzGap"||el.id==="dzScale"){
+    if(el.id==="dzGap"){dz.gap=Number(el.value);$("#dzGapOut").textContent=dz.gap+"%"}
+    else{dz.scale=Number(el.value);$("#dzScaleOut").textContent=dz.scale+"%"}
+    saveDz();applyDz();return}if(el.dataset.slot===undefined||el.type==="checkbox")return;
   draft()[Number(el.dataset.slot)][el.dataset.f]=el.value;
   const m=$("#wheelMsg");if(m){m.textContent="Unsaved changes";m.className="guess"}ui.wheelMsg="";
 });
 document.addEventListener("change",ev=>{
   const el=ev.target;
+  if(el.id==="dzOn"){dz.on=el.checked;saveDz();render();return}
   if(el.id==="muteBox"){muted=el.checked;try{localStorage.setItem(LS+"-mute",muted?"1":"0")}catch(e){}syncMute();return}
   if(readOnly)return;
   if(el.id==="stdMode"){state.config.stdMode=el.checked;ui.pickFor=null;saveConfig();render()}
