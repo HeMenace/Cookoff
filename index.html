@@ -2,7 +2,7 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 </head><body>
-<title>Jessop Cookoff 2026</title>
+<title>Cookoff 2026</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@600&display=swap">
@@ -91,10 +91,13 @@ h3{font-family:var(--display);font-weight:500;font-size:1.05rem;margin:14px 0 6p
 .wheel-box{position:relative;width:min(320px,100%);aspect-ratio:1;max-width:100%;margin:6px auto 12px}
 .wheel-box canvas{width:100%;height:100%;display:block}
 .pointer{position:absolute;top:-6px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-top:26px solid var(--fg);z-index:2}
-.dare{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;padding:10px 0;border-bottom:1px dashed var(--line)}
+.dare{display:grid;grid-template-columns:auto 1fr auto;gap:4px 10px;padding:10px 0;border-bottom:1px dashed var(--line)}
 .dare:last-child{border-bottom:0}
 .dare .n{font-family:var(--mono);color:var(--muted)}
-.dare .acts{grid-column:2;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.dare .acts{grid-column:2/4;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.dare .x{width:36px;height:36px;border:1px solid var(--line);background:var(--surface);border-radius:var(--r-sm);font-size:1.2rem;line-height:1;color:var(--muted);align-self:start}
+.dare .x.armed{width:auto;padding:0 10px;font-size:.85rem;font-weight:700;color:var(--bg);background:var(--warn);border-color:var(--warn)}
+.dare .st{font-size:.8rem;color:var(--muted)}
 .dare .meta{font-size:.8rem;color:var(--muted)}
 .dare .meta b{color:var(--tc,var(--fg))}
 .seg{border:1px solid var(--line);background:var(--surface);border-radius:var(--r-sm);padding:6px 10px;font-weight:700;font-size:.85rem}
@@ -162,7 +165,7 @@ input[type=text],textarea,select.in{width:100%;padding:10px;border-radius:var(--
 </style>
 
 <div class="bar" id="bar"><div class="wrap">
-  <div class="brand">Jessop Cookoff<small>Sat Nov 28 · 1:00 PM · <span id="syncState" class="sync">Saved on this device</span></small></div>
+  <div class="brand">Cookoff<small>Sat Nov 28 · 1:00 PM · <span id="syncState" class="sync">Saved on this device</span></small></div>
   <div>
     <div class="clock" id="clock">2:00:00</div>
     <div class="clock-sub" id="clockSub">Clock not started</div>
@@ -231,21 +234,21 @@ const CATS=[["entree","Entree"],["drink","Drink"],["dessert","Dessert / side"]];
 const DURATION=120*60*1000, SPIN_EVERY=15*60*1000, DRINKS_PER=5, DARE_PENALTY=5;
 const SPIN_MS=4500, LOCK_PAD=2500, POWER_SIPS=15;
 /* give: the spinning team picks another team to do it. timer: starts the Power 15 sip timer. */
-const WHEEL_VERSION=2;
+const WHEEL_VERSION=3;
 const DEFAULT_WHEEL=[
-  {text:"Take a shot",desc:"Everyone on your team takes a shot.",give:false,timer:false},
-  {text:"Give a shot",desc:"Pick a team. Everyone on that team takes a shot.",give:true,timer:false},
-  {text:"Power 15",desc:"Your team takes a sip of their drink every minute for 15 minutes. The app plays a sound each minute.",give:false,timer:true},
-  {text:"Give a power 15",desc:"Pick a team. They take a sip every minute for 15 minutes, and their app plays a sound each minute.",give:true,timer:true},
-  {text:"Touch grass",desc:"Everyone on your team goes outside and touches grass before cooking again.",give:false,timer:false},
-  {text:"Pet dog",desc:"Everyone on your team finds a dog and pets it before cooking again.",give:false,timer:false},
-  {text:"Oven mitts",desc:"Everyone cooks wearing oven mitts for the next 5 minutes.",give:false,timer:false},
-  {text:"Quiet game",desc:"No talking in your kitchen for 5 minutes.",give:false,timer:false},
-  {text:"Pick a team that has to spin around 10 times",desc:"Pick a team. Everyone on that team spins around 10 times.",give:true,timer:false},
-  {text:"Shotgun (nominate one person)",desc:"Your team picks one person to shotgun a drink.",give:false,timer:false},
-  {text:"Do a somersault (nominate one person)",desc:"Your team picks one person to do a somersault.",give:false,timer:false},
-  {text:"One person loses a hand (irl)",desc:"Pick one person who can't use one hand for the next 10 minutes.",give:false,timer:false},
-  {text:"Catch a grape",desc:"Someone tosses a grape and someone else catches it in their mouth. Keep going until it works.",give:false,timer:false}
+  {text:"Take a shot",desc:"Everyone on your team takes a shot right now.",give:false,timer:false},
+  {text:"Give a shot",desc:"Pick a team. Everyone on that team takes a shot right now.",give:true,timer:false},
+  {text:"Power 15",desc:"For the next 15 minutes, everyone on your team takes a sip of their drink every minute. The app plays a sound each minute so you don't lose count.",give:false,timer:true},
+  {text:"Give a power 15",desc:"Pick a team. For the next 15 minutes, everyone on that team sips their drink every minute. Their app plays a sound each minute.",give:true,timer:true},
+  {text:"Touch grass",desc:"Everyone on your team goes outside and puts a hand on real grass before anyone cooks again.",give:false,timer:false},
+  {text:"Pet dog",desc:"Everyone on your team has to pet a dog before going back to cooking. No dog in the house means a quick trip to find one.",give:false,timer:false},
+  {text:"Oven mitts",desc:"Everyone on your team cooks wearing oven mitts for the next 10 minutes. Share pairs if you run short.",give:false,timer:false},
+  {text:"Quiet game",desc:"Total silence in your kitchen for 5 minutes. Pointing and gestures only.",give:false,timer:false},
+  {text:"Pick a team that has to spin around 10 times",desc:"Pick a team. Everyone on that team spins around in place 10 times, then goes right back to cooking.",give:true,timer:false},
+  {text:"Shotgun (nominate one person)",desc:"Your team picks one person to shotgun a drink. It counts toward their drinks.",give:false,timer:false},
+  {text:"Do a somersault (nominate one person)",desc:"Your team picks one person to do a somersault. Clear some floor space first.",give:false,timer:false},
+  {text:"One person loses a hand (irl)",desc:"Your team picks one person who has to keep one hand behind their back for the next 15 minutes, or until your next spin.",give:false,timer:false},
+  {text:"Catch a grape",desc:"Someone tosses a grape and another teammate catches it in their mouth. Keep trying until one is caught.",give:false,timer:false}
 ];
 const SOUNDS=[["none","No sound"],["chime","Chime"],["if-you-can-talk","IF YOU CAN TALK"],["maggot","MAGGOT"],["maggot-2","MAGGOT (2)"],["i-cant","I CANT"],["its-not-done","ITS NOT DONE"]];
 const SOUND_EVENTS=[["sip","Power 15, every minute"],["given","Another team gives you a challenge"],["result","The wheel lands for your team"],["timeup","Time is up"]];
@@ -269,8 +272,12 @@ function normSlot(s){
 /* returns true when the wheel was upgraded to the new default list and should be saved */
 function normConfig(){
   const c=state.config;let changed=false;
-  if(c.wheelVersion!==WHEEL_VERSION){c.wheel=clone(DEFAULT_WHEEL);c.wheelVersion=WHEEL_VERSION;changed=true}
-  const w=Array.isArray(c.wheel)?c.wheel:Object.values(c.wheel||{});
+  let w=Array.isArray(c.wheel)?c.wheel:Object.values(c.wheel||{});
+  /* v1 was the old sample dares: swap in the real list. v2 to v3 keeps any edits and fills blank descriptions. */
+  if(!c.wheelVersion||c.wheelVersion<2){w=clone(DEFAULT_WHEEL);changed=true}
+  if(c.wheelVersion!==WHEEL_VERSION){
+    w=w.map(s=>{s=normSlot(s);if(!s.desc){const d=DEFAULT_WHEEL.find(x=>x.text.toLowerCase()===s.text.toLowerCase());if(d)s.desc=d.desc}return s});
+    c.wheelVersion=WHEEL_VERSION;changed=true}
   c.wheel=w.map(normSlot).filter(s=>s.text);
   c.sounds=Object.assign({},DEFAULT_SOUNDS,c.sounds||{});
   return changed;
@@ -279,7 +286,7 @@ const state={
   config:{running:false,startAt:0,banked:0,judges:2,wheel:clone(DEFAULT_WHEEL),wheelVersion:WHEEL_VERSION,stdMode:false,sounds:Object.assign({},DEFAULT_SOUNDS)},
   teams:Object.fromEntries(TEAMS.map(t=>[t.id,blankTeam()]))
 };
-const ui={tab:"board",team:"garrett",requesting:null,confirmSpin:false,spinMsg:"",wheelDraft:null,wheelMsg:"",stopArm:0};
+const ui={removeArm:null,tab:"board",team:"garrett",requesting:null,confirmSpin:false,spinMsg:"",wheelDraft:null,wheelMsg:"",stopArm:0};
 const LS="cookoff-2026-v1";
 try{const s=JSON.parse(localStorage.getItem(LS)||"null");
   if(s&&s.config){Object.assign(state.config,s.config);for(const t of TEAMS)state.teams[t.id]=normTeam(s.teams&&s.teams[t.id]);}
@@ -486,15 +493,17 @@ function dareRow(t,x,num){
   const meta=from?`<span class="meta" style="--tc:var(${from.color})">from <b>${esc(from.name)}</b> · ${esc(x.at||"")}</span>`
     :to?`<span class="meta" style="--tc:var(${to.color})">given to <b>${esc(to.name)}</b> · ${esc(x.at||"")}</span>`
     :`<span class="meta">${esc(x.at||"")}</span>`;
+  const armed=ui.removeArm&&ui.removeArm.id===x.id&&Date.now()-ui.removeArm.at<4000;
+  const x_=`<button class="x needs-write${armed?" armed":""}" data-del="${esc(x.id)}" aria-label="Remove ${esc(x.text)}">${armed?"Remove?":"×"}</button>`;
   let acts;
   if(x.status==="pick")acts=`<span class="muted" style="font-size:.85rem">Give to</span>${TEAMS.filter(o=>o.id!==t.id).map(o=>`<button class="seg give" style="--tc:var(${o.color})" data-give="${o.id}" data-from="${t.id}" data-spin="${esc(x.id)}">${esc(o.name)}</button>`).join("")}`;
-  else if(x.status==="given")acts=`<button class="seg" data-dare="${esc(x.id)}" data-st="remove">Remove</button>`;
-  else acts=`<button class="seg" data-dare="${esc(x.id)}" data-st="pending" aria-pressed="${x.status==="pending"}">In progress</button>
-        <button class="seg done" data-dare="${esc(x.id)}" data-st="done" aria-pressed="${x.status==="done"}">Done</button>
+  else if(x.status==="given")acts="";
+  /* Done and Failed toggle: tap the lit one again to put it back to not finished */
+  else acts=`<button class="seg done" data-dare="${esc(x.id)}" data-st="done" aria-pressed="${x.status==="done"}">Done</button>
         <button class="seg failed" data-dare="${esc(x.id)}" data-st="failed" aria-pressed="${x.status==="failed"}">Failed −5</button>
-        <button class="seg" data-dare="${esc(x.id)}" data-st="remove">Remove</button>`;
-  return `<div class="dare"><span class="n">${num}</span><div><b>${esc(x.text)}</b> ${meta}${from&&x.desc?`<div class="muted" style="font-size:.85rem">${esc(x.desc)}</div>`:""}</div>
-      <div class="acts needs-write">${acts}</div></div>`;
+        ${x.status==="done"||x.status==="failed"?"":`<span class="st">Not finished yet</span>`}`;
+  return `<div class="dare"><span class="n">${num}</span><div><b>${esc(x.text)}</b> ${meta}${from&&x.desc?`<div class="muted" style="font-size:.85rem">${esc(x.desc)}</div>`:""}</div>${x_}
+      ${acts?`<div class="acts needs-write">${acts}</div>`:""}</div>`;
 }
 function viewTeam(){
   const t=teamById(ui.team),d=state.teams[t.id],s=tally(t);
@@ -864,8 +873,13 @@ document.addEventListener("click",ev=>{
     ui.pickFor=null;saveTeam(ui.team);render();return}
   if(b.dataset.type){const log=state.teams[ui.team].drinkLog,m=b.dataset.for;(log[m]=log[m]||[]).push(DRINK_TYPES[Number(b.dataset.type)][2]);
     ui.pickFor=null;saveTeam(ui.team);render();return}
-  if(b.dataset.dare){const ref=live.doc(`dares/${ui.team}/${b.dataset.dare}`);
-    (b.dataset.st==="remove"?ref.remove():ref.update({status:b.dataset.st})).catch(()=>{});return}
+  if(b.dataset.dare){const x=daresOf(ui.team).find(d=>d.id===b.dataset.dare);
+    const st=x&&x.status===b.dataset.st?"pending":b.dataset.st;
+    live.doc(`dares/${ui.team}/${b.dataset.dare}`).update({status:st}).catch(()=>{});return}
+  if(b.dataset.del){const id=b.dataset.del;
+    if(ui.removeArm&&ui.removeArm.id===id&&Date.now()-ui.removeArm.at<4000){ui.removeArm=null;live.doc(`dares/${ui.team}/${id}`).remove().catch(()=>{})}
+    else{ui.removeArm={id,at:Date.now()};render();setTimeout(()=>{if(ui.removeArm&&ui.removeArm.id===id){ui.removeArm=null;render()}},4100)}
+    return}
   if(b.dataset.slotdel!==undefined){draft().splice(Number(b.dataset.slotdel),1);ui.wheelMsg="";render();return}
   const c=state.config;
   switch(b.id){
