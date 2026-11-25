@@ -1,56 +1,43 @@
-# Jessop Cookoff app on GitHub Pages
+# Cookoff
 
-The whole app is `index.html`. Hosting on GitHub Pages is free. A free Firebase Realtime Database keeps all three houses in sync live. One cookoff stays far under Firebase's free Spark plan limits, and it doesn't need a credit card.
+A live scoreboard and party app for a three-team cooking competition. Open it at https://hemenace.github.io/Cookoff/ on any phone or computer. Every device stays in sync.
 
-## 1. Create the Firebase database (about 5 minutes)
+## The competition
 
-1. Go to https://console.firebase.google.com and click **Create a project**. You can name it anything, for example `jessop-cookoff`. You can turn Google Analytics off.
-2. In the left menu, open **Build > Realtime Database** and click **Create Database**. Pick the US location, then choose **Start in test mode**.
-3. Open the **Rules** tab, paste this, and click **Publish**:
+- Three teams, three kitchens, two hours on the clock.
+- Each team makes an entree, a drink, and a dessert or side.
+- Every team has to use fresh ginger, zucchini, canned cranberry sauce and cream cheese.
+- Judges score each dish from 1 to 10, for a maximum of 30 points.
+- Each person has a goal of 5 drinks. Every drink left unfinished costs the team 1 point.
+- Every 15 minutes, each team spins the challenge wheel. A failed challenge costs 5 points.
 
-   ```json
-   {
-     "rules": {
-       "cookoff2026": { ".read": true, ".write": true }
-     }
-   }
-   ```
+## What the site does
 
-   Anyone with the site link can change scores, which is fine for one party. After the event, set `.write` to `false` to freeze the results.
-4. Go to **Project settings** (the gear icon) > **General** > **Your apps**, click the web icon `</>`, register an app (skip Hosting), and copy the `firebaseConfig` object it shows you.
+**Leaderboard.** Live standings with each team's judges' total, drink count, spins and penalties.
 
-## 2. Paste the config into index.html
+**My team.** Pick your team to log drinks, write down your menu, and spin the challenge wheel.
 
-Find this line near the top of the script:
+**Challenge wheel.**
+- Only one person per team can spin at a time, and everyone on that team watches the same spin.
+- When the wheel lands, a popup shows the challenge and a description. It stays up until you tap Got it.
+- Some challenges get given to another team. That team gets a banner across the top of their screen and a sound.
+- Power 15 starts a 15-minute timer that plays a sound every minute so everyone takes a sip.
+- Mark each challenge Done or Failed.
 
-```js
-const FIREBASE_CONFIG=null;
-```
+**Alerts.**
+- The top of the screen flashes and chimes when a spin is due.
+- Sound clips play for given challenges, Power 15 sips, wheel results and time running out.
 
-Replace `null` with the object you copied. It needs to include `databaseURL`:
+**Judging.** Judges pick a 1 to 10 score for each dish. With more than one judge, the scores are averaged.
 
-```js
-const FIREBASE_CONFIG={
-  apiKey: "…",
-  authDomain: "jessop-cookoff.firebaseapp.com",
-  databaseURL: "https://jessop-cookoff-default-rtdb.firebaseio.com",
-  projectId: "jessop-cookoff",
-  appId: "…"
-};
-```
+**Setup.**
+- Start or pause the shared 2-hour clock.
+- Set the number of judges.
+- Edit the wheel slots and descriptions, and choose sounds.
+- Clear the test data before the event.
 
-The Firebase web config isn't a secret, so it's fine for it to be in a public repo. The database rules above are what control access.
+**Discord layout.** Under Setup > This screen, a computer can leave the middle of the screen open for the Discord video window, with the app split on both sides. A size slider makes everything bigger or smaller. These settings only change the one device.
 
-## 3. Publish on GitHub Pages
+## How it's built
 
-1. Create a new public repository, for example `cookoff`, and upload `index.html` to it.
-2. Go to **Settings > Pages**, set **Source** to "Deploy from a branch", pick `main` and `/ (root)`, and save.
-3. After about a minute, the site is live at `https://<your-username>.github.io/cookoff/`.
-
-Open the site on two phones. The tag at the top should say **Live · synced**. If you add a drink on one phone, it shows up on the other within a second.
-
-## On the day
-
-- Each house needs at least one phone with the site open. The person running it in each house uses the **My team** tab, and the judges use **Judging**.
-- One person presses **Start 2 hours** in **Setup**. Every device shares the same clock.
-- **Clear all results** in Setup wipes everything for everyone, so use it only to clear test data before 1 PM.
+The whole app is one file, `index.html`, hosted on GitHub Pages. Scores, spins and the clock sync live through a free Firebase Realtime Database. The `sounds/` folder holds the audio clips.
