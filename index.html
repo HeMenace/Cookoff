@@ -23,6 +23,7 @@
 }
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.45}
+body.ov-open{overflow:hidden}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
@@ -88,22 +89,23 @@ h3{font-family:var(--display);font-weight:500;font-size:1.05rem;margin:14px 0 6p
 
 /* wheel */
 .wheel-box{position:relative;width:min(320px,100%);aspect-ratio:1;max-width:100%;margin:6px auto 12px}
-.wheel-box canvas{width:100%;height:100%;display:block;transition:transform 4.2s cubic-bezier(.12,.7,.15,1)}
+.wheel-box canvas{width:100%;height:100%;display:block}
 .pointer{position:absolute;top:-6px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-top:26px solid var(--fg);z-index:2}
-.result{font-family:var(--display);font-weight:800;font-size:1.25rem;text-align:center;min-height:1.6em;text-wrap:balance}
 .dare{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;padding:10px 0;border-bottom:1px dashed var(--line)}
 .dare:last-child{border-bottom:0}
 .dare .n{font-family:var(--mono);color:var(--muted)}
-.dare .acts{grid-column:2;display:flex;gap:6px;flex-wrap:wrap}
+.dare .acts{grid-column:2;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.dare .meta{font-size:.8rem;color:var(--muted)}
+.dare .meta b{color:var(--tc,var(--fg))}
 .seg{border:1px solid var(--line);background:var(--surface);border-radius:var(--r-sm);padding:6px 10px;font-weight:700;font-size:.85rem}
 .seg[aria-pressed="true"].done{background:var(--good);color:var(--bg);border-color:var(--good)}
 .seg[aria-pressed="true"].failed{background:var(--bad);color:var(--bg);border-color:var(--bad)}
+.seg.give{border-color:var(--tc);border-width:2px}
 
 /* banner + links + drink types */
 .banner{background:var(--sunk);border-style:dashed;display:grid;gap:8px}
 .ing{display:flex;flex-wrap:wrap;gap:8px}
 .ing span{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:6px 12px;font-weight:700}
-a.link{text-decoration:none;display:inline-block}
 .types{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px;padding:4px 0 10px}
 .type{border:1px solid var(--line);background:var(--sunk);border-radius:var(--r-sm);padding:8px;text-align:left;display:grid;gap:2px}
 .type span{font-size:.75rem;color:var(--muted)}
@@ -116,24 +118,47 @@ a.link{text-decoration:none;display:inline-block}
 .jtable th,.jtable td{padding:6px 4px;text-align:left;border-bottom:1px solid var(--line)}
 .jtable select{width:100%;min-width:56px;padding:8px 4px;border-radius:var(--r-sm);border:1px solid var(--line);background:var(--sunk)}
 .scroll{overflow-x:auto}
-input[type=text],textarea{width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--line);background:var(--sunk)}
-textarea{min-height:260px;line-height:1.5}
+input[type=text],textarea,select.in{width:100%;padding:10px;border-radius:var(--r-sm);border:1px solid var(--line);background:var(--sunk)}
 .dish{display:grid;gap:6px;margin-bottom:12px}
+
+/* wheel slot editor */
+.slot{display:grid;gap:6px;padding:10px 0;border-bottom:1px dashed var(--line)}
+.slot:last-child{border-bottom:0}
+.slot .n{font-family:var(--mono);color:var(--muted);font-size:.8rem}
+.slot input.desc{font-size:.88rem;padding:8px 10px}
+.tog{display:flex;gap:6px;align-items:center;font-size:.85rem;font-weight:700}
+.tog input{width:20px;height:20px;accent-color:var(--accent)}
+.snd{display:grid;grid-template-columns:1fr auto;gap:6px 8px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line)}
+.snd:last-of-type{border-bottom:0}
+.snd span{grid-column:1/-1;font-weight:700;font-size:.9rem}
 
 .sync{font-size:.72rem;padding:1px 6px;border-radius:var(--r-sm);background:var(--sunk);color:var(--muted)}
 .confirm{display:none;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
 .confirm.show{display:flex}
-/* spin alert: sits under the clock bar until the team actually spins */
-.spin-alert{border-top:1px solid var(--line);background:var(--sunk)}
-.spin-alert .wrap{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-block:12px}
-.spin-alert .msg{flex:1 1 220px;min-width:0;border-left:6px solid var(--tc,var(--warn));padding-left:12px}
-.spin-alert .msg b{display:block;font-family:var(--display);font-weight:800;font-size:1.2rem;line-height:1.15;color:var(--warn)}
-.spin-alert .msg span{font-size:.85rem;color:var(--muted)}
-.spin-alert .btn{padding:12px 18px}
-.spin-alert{animation:alertPulse 1.2s ease-in-out infinite alternate}
+/* alert strips under the clock bar: spin due, challenge received, Power 15 */
+.alert{border-top:1px solid var(--line);background:var(--sunk)}
+.alert .wrap{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-block:12px}
+.alert .msg{flex:1 1 220px;min-width:0;border-left:6px solid var(--tc,var(--warn));padding-left:12px}
+.alert .msg b{display:block;font-family:var(--display);font-weight:800;font-size:1.2rem;line-height:1.15;color:var(--warn)}
+.alert .msg span{display:block;font-size:.85rem;color:var(--muted)}
+.alert .msg span.what{font-family:var(--display);font-weight:800;font-size:1.05rem;color:var(--fg)}
+.alert .btn{padding:12px 18px}
+.alert.pulse{animation:alertPulse 1.2s ease-in-out infinite alternate}
 @keyframes alertPulse{from{background:var(--sunk)}to{background:#33302a}}
+#pwAlert .msg b{color:var(--accent)}
+#pwAlert.fresh{background:#1f3329}
 .chip.due{color:var(--bg);background:var(--warn);font-weight:700}
-@media (prefers-reduced-motion:reduce){.wheel-box canvas{transition-duration:.6s}.bar.due,.spin-alert{animation:none}}
+
+/* spin popup: every viewer of the team sees the same spin and must tap Got it */
+.ov{position:fixed;inset:0;z-index:20;background:rgba(8,9,11,.82);display:flex;align-items:center;justify-content:center;padding:16px}
+.ov-card{background:var(--surface);border:1px solid var(--line);border-top:6px solid var(--tc,var(--accent));border-radius:var(--r);padding:18px;width:min(440px,100%);max-height:calc(100dvh - 32px);overflow-y:auto;display:grid;gap:10px}
+.ov-head{font-family:var(--display);font-weight:800;font-size:1.15rem;color:var(--tc,var(--fg))}
+.ov .wheel-box{width:min(280px,62vw);margin:4px auto}
+.ov-title{font-family:var(--display);font-weight:800;font-size:1.8rem;line-height:1.1;text-wrap:balance}
+.ov-desc{margin:0;font-size:1rem}
+.ov-note{background:var(--sunk);border-left:6px solid var(--tc,var(--accent));border-radius:var(--r-sm);padding:10px 12px;font-size:.92rem}
+.ov-ok{width:100%;padding:14px;font-size:1.05rem}
+@media (prefers-reduced-motion:reduce){.bar.due,.alert.pulse{animation:none}}
 </style>
 
 <div class="bar" id="bar"><div class="wrap">
@@ -143,10 +168,20 @@ textarea{min-height:260px;line-height:1.5}
     <div class="clock-sub" id="clockSub">Clock not started</div>
   </div>
 </div>
-<div class="spin-alert" id="spinAlert" role="alert" hidden><div class="wrap">
+<div class="alert pulse" id="evAlert" role="alert" hidden><div class="wrap">
+  <div class="msg" id="evMsg"></div>
+  <button class="btn" data-mute>Mute</button>
+  <button class="btn primary" id="evOk">Got it</button>
+</div></div>
+<div class="alert" id="pwAlert" role="status" hidden><div class="wrap">
+  <div class="msg" id="pwMsg"></div>
+  <button class="btn" data-mute>Mute</button>
+  <button class="btn needs-write" id="pwStop">Stop</button>
+</div></div>
+<div class="alert pulse" id="spinAlert" role="alert" hidden><div class="wrap">
   <div class="msg" id="spinMsg"></div>
-  <button class="btn" id="spinMute" aria-pressed="false">Mute</button>
-  <button class="btn primary" id="spinGo">Spin the wheel</button>
+  <button class="btn" data-mute>Mute</button>
+  <button class="btn primary needs-write" id="spinGo">Spin the wheel</button>
 </div></div>
 </div>
 
@@ -159,6 +194,12 @@ textarea{min-height:260px;line-height:1.5}
   </nav>
   <main id="view"></main>
 </div>
+
+<div class="ov" id="ov" role="dialog" aria-modal="true" aria-labelledby="ovHead" hidden><div class="ov-card">
+  <div class="ov-head" id="ovHead"></div>
+  <div class="wheel-box"><div class="pointer"></div><canvas id="ovWheel" width="640" height="640"></canvas></div>
+  <div id="ovBody" style="display:grid;gap:10px" aria-live="polite"></div>
+</div></div>
 
 <script>
 (function(){
@@ -188,43 +229,74 @@ const FIREBASE_CONFIG={
 };
 const CATS=[["entree","Entree"],["drink","Drink"],["dessert","Dessert / side"]];
 const DURATION=120*60*1000, SPIN_EVERY=15*60*1000, DRINKS_PER=5, DARE_PENALTY=5;
+const SPIN_MS=4500, LOCK_PAD=2500, POWER_SIPS=15;
+/* give: the spinning team picks another team to do it. timer: starts the Power 15 sip timer. */
+const WHEEL_VERSION=2;
 const DEFAULT_WHEEL=[
-  "Whole team takes a shot",
-  "Cook one-handed for 5 minutes",
-  "Speak only in accents for 15 minutes",
-  "Dance break: 1 full song, no cooking",
-  "FaceTime another team and trash talk",
-  "Silent kitchen for 5 minutes",
-  "Waterfall",
-  "Swap jobs with a teammate",
-  "Put on a costume piece (or make one)",
-  "Sing everything you say for 5 minutes",
-  "Finish your current drink",
-  "Free pass"
+  {text:"Take a shot",desc:"Everyone on your team takes a shot.",give:false,timer:false},
+  {text:"Give a shot",desc:"Pick a team. Everyone on that team takes a shot.",give:true,timer:false},
+  {text:"Power 15",desc:"Your team takes a sip of their drink every minute for 15 minutes. The app plays a sound each minute.",give:false,timer:true},
+  {text:"Give a power 15",desc:"Pick a team. They take a sip every minute for 15 minutes, and their app plays a sound each minute.",give:true,timer:true},
+  {text:"Touch grass",desc:"Everyone on your team goes outside and touches grass before cooking again.",give:false,timer:false},
+  {text:"Pet dog",desc:"Everyone on your team finds a dog and pets it before cooking again.",give:false,timer:false},
+  {text:"Oven mitts",desc:"Everyone cooks wearing oven mitts for the next 5 minutes.",give:false,timer:false},
+  {text:"Quiet game",desc:"No talking in your kitchen for 5 minutes.",give:false,timer:false},
+  {text:"Pick a team that has to spin around 10 times",desc:"Pick a team. Everyone on that team spins around 10 times.",give:true,timer:false},
+  {text:"Shotgun (nominate one person)",desc:"Your team picks one person to shotgun a drink.",give:false,timer:false},
+  {text:"Do a somersault (nominate one person)",desc:"Your team picks one person to do a somersault.",give:false,timer:false},
+  {text:"One person loses a hand (irl)",desc:"Pick one person who can't use one hand for the next 10 minutes.",give:false,timer:false},
+  {text:"Catch a grape",desc:"Someone tosses a grape and someone else catches it in their mouth. Keep going until it works.",give:false,timer:false}
 ];
-const blankTeam=()=>({drinks:{},drinkLog:{},dares:[],scores:{},dishes:{}});
+const SOUNDS=[["none","No sound"],["chime","Chime"],["if-you-can-talk","IF YOU CAN TALK"],["maggot","MAGGOT"],["maggot-2","MAGGOT (2)"],["i-cant","I CANT"],["its-not-done","ITS NOT DONE"]];
+const SOUND_EVENTS=[["sip","Power 15, every minute"],["given","Another team gives you a challenge"],["result","The wheel lands for your team"],["timeup","Time is up"]];
+const DEFAULT_SOUNDS={sip:"if-you-can-talk",given:"maggot",result:"i-cant",timeup:"its-not-done"};
+const clone=o=>JSON.parse(JSON.stringify(o));
+const blankTeam=()=>({drinks:{},drinkLog:{},scores:{},dishes:{}});
 /* bring older saves (plain counts) and Firebase's dropped empty fields into shape */
 function normTeam(raw){
-  const d=Object.assign(blankTeam(),JSON.parse(JSON.stringify(raw||{})));
+  const d=Object.assign(blankTeam(),clone(raw||{}));
   for(const k of ["drinks","drinkLog","scores","dishes"])if(!d[k]||typeof d[k]!=="object")d[k]={};
-  d.dares=Array.isArray(d.dares)?d.dares.filter(Boolean):Object.values(d.dares||{});
   for(const m in d.drinks){if(!Array.isArray(d.drinkLog[m])&&d.drinks[m]>0)d.drinkLog[m]=Array(d.drinks[m]).fill(1)}
   for(const m in d.drinkLog){const l=d.drinkLog[m];d.drinkLog[m]=Array.isArray(l)?l.filter(x=>typeof x==="number"):Object.values(l||{})}
-  delete d.drinks;delete d.ingredients;
+  /* spins moved to their own synced list (dares/<team>) so they can't be overwritten */
+  delete d.drinks;delete d.ingredients;delete d.dares;
   return d;
 }
+function normSlot(s){
+  if(typeof s==="string")s={text:s};s=s||{};
+  return {text:String(s.text||"").trim().slice(0,80),desc:String(s.desc||"").trim().slice(0,240),give:!!s.give,timer:!!s.timer};
+}
+/* returns true when the wheel was upgraded to the new default list and should be saved */
+function normConfig(){
+  const c=state.config;let changed=false;
+  if(c.wheelVersion!==WHEEL_VERSION){c.wheel=clone(DEFAULT_WHEEL);c.wheelVersion=WHEEL_VERSION;changed=true}
+  const w=Array.isArray(c.wheel)?c.wheel:Object.values(c.wheel||{});
+  c.wheel=w.map(normSlot).filter(s=>s.text);
+  c.sounds=Object.assign({},DEFAULT_SOUNDS,c.sounds||{});
+  return changed;
+}
 const state={
-  config:{running:false,startAt:0,banked:0,judges:2,wheel:DEFAULT_WHEEL.slice(),stdMode:false},
+  config:{running:false,startAt:0,banked:0,judges:2,wheel:clone(DEFAULT_WHEEL),wheelVersion:WHEEL_VERSION,stdMode:false,sounds:Object.assign({},DEFAULT_SOUNDS)},
   teams:Object.fromEntries(TEAMS.map(t=>[t.id,blankTeam()]))
 };
-const ui={tab:"board",team:"garrett",spinning:false,lastResult:""};
+const ui={tab:"board",team:"garrett",requesting:null,confirmSpin:false,spinMsg:"",wheelDraft:null,wheelMsg:"",stopArm:0};
 const LS="cookoff-2026-v1";
 try{const s=JSON.parse(localStorage.getItem(LS)||"null");
   if(s&&s.config){Object.assign(state.config,s.config);for(const t of TEAMS)state.teams[t.id]=normTeam(s.teams&&s.teams[t.id]);}
   const u=JSON.parse(localStorage.getItem(LS+"-ui")||"null");if(u){ui.tab=u.tab||ui.tab;ui.team=u.team||ui.team;}
 }catch(e){}
+normConfig();
 function saveLocal(){try{localStorage.setItem(LS,JSON.stringify(state))}catch(e){}}
 function saveUi(){try{localStorage.setItem(LS+"-ui",JSON.stringify({tab:ui.tab,team:ui.team}))}catch(e){}}
+/* popups and banners this device already acknowledged */
+const acks=new Set();
+try{(JSON.parse(localStorage.getItem(LS+"-acks")||"[]")||[]).forEach(x=>acks.add(x))}catch(e){}
+function ack(id){acks.add(id);try{localStorage.setItem(LS+"-acks",JSON.stringify([...acks].slice(-300)))}catch(e){}}
+
+/* server clock: every device agrees on spin timing and the Power 15 minutes */
+let srvOffset=0;
+const now=()=>Date.now()+srvOffset;
+const makeId=()=>now().toString(36)+Math.random().toString(36).slice(2,7);
 
 /* ---------- shared store (db) with local fallback ---------- */
 let db=null, readOnly=false;
@@ -232,7 +304,7 @@ const pending={}, inflight={};
 function persist(path,obj){
   saveLocal();
   if(!db||readOnly)return;
-  pending[path]=JSON.parse(JSON.stringify(obj));
+  pending[path]=clone(obj);
   if(!inflight[path])flush(path);
 }
 async function flush(path){
@@ -252,6 +324,31 @@ const saveConfig=()=>persist("game/config",state.config);
 const saveTeam=id=>persist("teams/"+id,state.teams[id]);
 function setSync(t){document.getElementById("syncState").textContent=t}
 
+/* Same small API as firebaseDb, kept in this browser only. Used until Firebase connects, or if it can't. */
+function localLive(){
+  const KEY=LS+"-live";let tree={};
+  try{tree=JSON.parse(localStorage.getItem(KEY)||"{}")||{}}catch(e){}
+  const subs=[],parts=p=>p.split("/").filter(Boolean);
+  const get=p=>{const v=parts(p).reduce((o,k)=>o&&typeof o==="object"?o[k]:undefined,tree);return v===undefined?null:clone(v)};
+  function put(p,v){
+    const ks=parts(p);let o=tree;
+    for(let i=0;i<ks.length-1;i++){if(!o[ks[i]]||typeof o[ks[i]]!=="object")o[ks[i]]={};o=o[ks[i]]}
+    if(v===null||v===undefined)delete o[ks[ks.length-1]];else o[ks[ks.length-1]]=clone(v);
+    try{localStorage.setItem(KEY,JSON.stringify(tree))}catch(e){}
+    const P=ks.join("/");
+    subs.forEach(s=>{if(s.p===P||s.p.startsWith(P+"/")||P.startsWith(s.p+"/"))setTimeout(()=>s.cb(get(s.p)),0)});
+  }
+  return {doc(p){return{
+    set:v=>{put(p,v);return Promise.resolve()},
+    update:o=>{for(const k in o)put(p+"/"+k,o[k]);return Promise.resolve()},
+    remove:()=>{put(p,null);return Promise.resolve()},
+    transaction:fn=>{const r=fn(get(p));if(r===undefined)return Promise.resolve({committed:false,val:get(p)});put(p,r);return Promise.resolve({committed:true,val:clone(r)})},
+    on(cb){const s={p:parts(p).join("/"),cb};subs.push(s);setTimeout(()=>cb(get(p)),0);return()=>{const i=subs.indexOf(s);if(i>=0)subs.splice(i,1)}}
+  }}};
+}
+let live=localLive(), liveUnsubs=[];
+const liveState={spins:{},dares:{},power:{}};
+
 function loadScript(src){return new Promise((ok,no)=>{const s=document.createElement("script");s.src=src;s.onload=ok;s.onerror=no;document.head.appendChild(s)})}
 /* Wraps Firebase Realtime Database in the same doc().set / onSnapshot shape the page uses */
 async function firebaseDb(){
@@ -260,14 +357,33 @@ async function firebaseDb(){
   await loadScript(`https://www.gstatic.com/firebasejs/${v}/firebase-database-compat.js`);
   const app=window.firebase.initializeApp(FIREBASE_CONFIG);
   const rt=app.database(),root="cookoff2026/";
+  rt.ref(".info/serverTimeOffset").on("value",s=>{srvOffset=Number(s.val())||0});
   return {doc(p){const ref=rt.ref(root+p);return{
     set:d=>ref.set(d),
+    update:d=>ref.update(d),
+    remove:()=>ref.remove(),
+    /* atomic read-modify-write on the server. Not applied locally first, so a device that loses the race never shows its own spin. */
+    transaction:fn=>new Promise((ok,no)=>ref.transaction(cur=>fn(cur===undefined?null:cur),(err,committed,snap)=>err?no(err):ok({committed,val:snap?snap.val():null}),false)),
+    on(cb){const h=s=>cb(s.val());ref.on("value",h);return()=>ref.off("value",h)},
     onSnapshot(next,err){const h=s=>next({exists:s.exists(),data:()=>s.val(),metadata:{fromCache:false}});
       ref.on("value",h,e=>err&&err(e));return()=>ref.off("value",h)}}}};
 }
+function subscribeLive(){
+  liveUnsubs.forEach(f=>{try{f()}catch(e){}});liveUnsubs=[];
+  for(const t of TEAMS){
+    liveUnsubs.push(live.doc("spins/"+t.id).on(v=>{liveState.spins[t.id]=v&&v.id?v:null;onSpinRec(t.id)}));
+    liveUnsubs.push(live.doc("dares/"+t.id).on(v=>{liveState.dares[t.id]=normDares(v);onDares(t.id)}));
+    liveUnsubs.push(live.doc("power/"+t.id).on(v=>{liveState.power[t.id]=v&&v.startAt?v:null;render(true)}));
+  }
+}
+function normDares(v){
+  return Object.entries(v&&typeof v==="object"?v:{}).filter(([,d])=>d&&d.text)
+    .map(([id,d])=>Object.assign({},d,{id})).sort((a,b)=>(a.t||0)-(b.t||0));
+}
+subscribeLive();
 (async function connect(){
   try{
-    if(FIREBASE_CONFIG){setSync("Connecting…");db=await firebaseDb();}
+    if(FIREBASE_CONFIG){setSync("Connecting…");db=await firebaseDb();live=db;subscribeLive();}
     else{
       if(!window.claude||!window.claude.use)return;
       db=await window.claude.use("db");
@@ -281,7 +397,10 @@ async function firebaseDb(){
     const done=()=>{clearTimeout(timer);if(!readOnly)setSync("Live · synced")};
     db.doc("game/config").onSnapshot(s=>{
       if(!s.metadata.fromCache)done();
-      if(s.exists&&!pending["game/config"]&&!inflight["game/config"]){Object.assign(state.config,s.data());saveLocal();render(true)}
+      if(s.exists&&!pending["game/config"]&&!inflight["game/config"]){
+        Object.assign(state.config,s.data());
+        if(normConfig()&&!readOnly)saveConfig();
+        saveLocal();render(true)}
     },()=>setSync("Live sync stopped, saved here"));
     for(const t of TEAMS){
       db.doc("teams/"+t.id).onSnapshot(s=>{
@@ -295,10 +414,15 @@ async function firebaseDb(){
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const teamById=id=>TEAMS.find(t=>t.id===id);
-function elapsed(){const c=state.config;return Math.max(0,(c.banked||0)+(c.running?Date.now()-c.startAt:0))}
+function elapsed(){const c=state.config;return Math.max(0,(c.banked||0)+(c.running?now()-c.startAt:0))}
 function fmt(ms,hours){ms=Math.max(0,Math.ceil(ms/1000));const h=Math.floor(ms/3600),m=Math.floor(ms%3600/60),s=ms%60;
   return (hours||h?h+":"+String(m).padStart(2,"0"):m)+":"+String(s).padStart(2,"0")}
+function atLabel(){return state.config.running||elapsed()>0?fmt(elapsed(),true)+" in":new Date().toLocaleTimeString([], {hour:"numeric",minute:"2-digit"})}
 function judgeKeys(){return Array.from({length:state.config.judges||1},(_,i)=>"j"+(i+1))}
+const daresOf=id=>liveState.dares[id]||[];
+/* the spin's own entry is written as the wheel starts; keep it out of the list until the wheel lands */
+const shownDares=id=>daresOf(id).filter(d=>!(d.t>now()));
+const ownSpins=id=>daresOf(id).filter(d=>!d.from);
 function tally(t){
   const d=state.teams[t.id];
   let judged=0,cats={};
@@ -310,18 +434,25 @@ function tally(t){
   const target=t.members.length*DRINKS_PER;
   const finished=r1(t.members.reduce((a,m)=>a+drunk(d,m),0));
   const left=Math.max(0,r1(target-finished));
-  const fails=d.dares.filter(x=>x.status==="failed").length;
+  const fails=daresOf(t.id).filter(x=>x.status==="failed").length;
   const total=r1(judged-left-fails*DARE_PENALTY);
   return {cats,judged:r1(judged),target,finished,left,fails,total};
 }
 function r1(v){return Math.round(v*10)/10}
-/* spins a team owes: one at the start, then one every 15 minutes (0, 15, ... 105 = 8 total) */
+/* spins a team owes: one at the start, then one every 15 minutes (0, 15, ... 105 = 8 total).
+   Challenges another team gave you don't count as your spins. */
 function spinsDue(){const e=elapsed(),c=state.config;if(!c.running&&e===0)return 0;
   return Math.min(Math.ceil(DURATION/SPIN_EVERY),Math.floor(Math.min(e,DURATION-1)/SPIN_EVERY)+1)}
-const owed=id=>Math.max(0,spinsDue()-state.teams[id].dares.length);
+const owed=id=>Math.max(0,spinsDue()-ownSpins(id).length);
 /* drinks one person has finished: a plain count, or standard drinks when that mode is on */
 function drunk(d,m){const l=d.drinkLog[m]||[];return state.config.stdMode?r1(l.reduce((a,b)=>a+b,0)):l.length}
 const n1=v=>Number.isInteger(v)?String(v):v.toFixed(1);
+const spinBusy=id=>{const r=liveState.spins[id];return !!(r&&now()<r.landAt+LOCK_PAD)};
+function powerState(id){
+  const p=liveState.power[id];if(!p)return null;
+  const e=now()-p.startAt;if(e<0||e>=POWER_SIPS*60000)return null;
+  return {p,idx:Math.floor(e/60000),next:60000-(e%60000),fresh:e%60000<10000,left:POWER_SIPS*60000-e};
+}
 
 /* ---------- views ---------- */
 function viewBoard(){
@@ -329,7 +460,7 @@ function viewBoard(){
   const over=elapsed()>=DURATION;
   return `<section class="panel"><h2>Leaderboard</h2>
   <p class="muted" style="margin:0 0 12px">Judges' total (max 30), minus 1 per leftover drink, minus 5 per failed dare. ${over?"Time is up, these are final once judging is in.":"Drink penalties are live: they shrink as drinks get finished."}</p>
-  <div class="lb">${rows.map((r,i)=>{const s=r.s;return `
+  <div class="lb">${rows.map((r,i)=>{const s=r.s,n=ownSpins(r.t.id).length;return `
     <div class="lb-card" style="--tc:var(${r.t.color})">
       <div class="rank">${i+1}</div>
       <div style="min-width:0"><div class="lb-name">${esc(r.t.name)}</div>
@@ -337,8 +468,9 @@ function viewBoard(){
         <div class="lb-break">
           <span class="chip">Judges ${n1(s.judged)}/30</span>
           <span class="chip ${s.left?"bad":"good"}">Drinks ${n1(s.finished)}/${s.target}${s.left?" · −"+n1(s.left):""}</span>
-          <span class="chip ${s.fails?"bad":""}">${state.teams[r.t.id].dares.length} spin${state.teams[r.t.id].dares.length===1?"":"s"}${s.fails?" · −"+s.fails*DARE_PENALTY:""}</span>
+          <span class="chip ${s.fails?"bad":""}">${n} spin${n===1?"":"s"}${s.fails?" · −"+s.fails*DARE_PENALTY:""}</span>
           ${owed(r.t.id)?`<span class="chip due">Spin due</span>`:""}
+          ${powerState(r.t.id)?`<span class="chip warn">Power 15</span>`:""}
         </div></div>
       <div class="score">${n1(s.total)}<small>points</small></div>
     </div>`}).join("")}</div></section>
@@ -348,6 +480,21 @@ function banner(){
   return `<section class="panel banner"><div class="label">Required ingredients</div>
     <div class="ing">${INGREDIENTS.map(i=>`<span>${i}</span>`).join("")}</div>
     <div class="muted" style="font-size:.85rem">Make an entree, a drink, and a dessert or side.</div></section>`;
+}
+function dareRow(t,x,num){
+  const from=x.from&&teamById(x.from),to=x.givenTo&&teamById(x.givenTo);
+  const meta=from?`<span class="meta" style="--tc:var(${from.color})">from <b>${esc(from.name)}</b> · ${esc(x.at||"")}</span>`
+    :to?`<span class="meta" style="--tc:var(${to.color})">given to <b>${esc(to.name)}</b> · ${esc(x.at||"")}</span>`
+    :`<span class="meta">${esc(x.at||"")}</span>`;
+  let acts;
+  if(x.status==="pick")acts=`<span class="muted" style="font-size:.85rem">Give to</span>${TEAMS.filter(o=>o.id!==t.id).map(o=>`<button class="seg give" style="--tc:var(${o.color})" data-give="${o.id}" data-from="${t.id}" data-spin="${esc(x.id)}">${esc(o.name)}</button>`).join("")}`;
+  else if(x.status==="given")acts=`<button class="seg" data-dare="${esc(x.id)}" data-st="remove">Remove</button>`;
+  else acts=`<button class="seg" data-dare="${esc(x.id)}" data-st="pending" aria-pressed="${x.status==="pending"}">In progress</button>
+        <button class="seg done" data-dare="${esc(x.id)}" data-st="done" aria-pressed="${x.status==="done"}">Done</button>
+        <button class="seg failed" data-dare="${esc(x.id)}" data-st="failed" aria-pressed="${x.status==="failed"}">Failed −5</button>
+        <button class="seg" data-dare="${esc(x.id)}" data-st="remove">Remove</button>`;
+  return `<div class="dare"><span class="n">${num}</span><div><b>${esc(x.text)}</b> ${meta}${from&&x.desc?`<div class="muted" style="font-size:.85rem">${esc(x.desc)}</div>`:""}</div>
+      <div class="acts needs-write">${acts}</div></div>`;
 }
 function viewTeam(){
   const t=teamById(ui.team),d=state.teams[t.id],s=tally(t);
@@ -365,19 +512,18 @@ function viewTeam(){
     <div class="meter"><i style="width:${Math.min(100,s.finished/s.target*100)}%"></i></div>
     <div class="row" style="justify-content:space-between;margin-top:6px"><b>${s.finished} of ${s.target} finished</b>
       <span class="chip ${s.left?"bad":"good"}">${s.left?s.left+" left · −"+s.left+" pts":"Goal met"}</span></div></section>`;
-  const dares=d.dares.slice().reverse();
+  const list=shownDares(t.id);let k=0;
+  const nums=list.map(x=>x.from?"In":"#"+(++k));
+  const rows=list.map((x,i)=>dareRow(t,x,nums[i])).reverse();
+  const busy=ui.requesting===t.id||spinBusy(t.id);
   const wheel=`<section class="panel"><h2>Challenge wheel</h2>
-    <p class="muted" style="margin:0 0 4px">One spin every 15 minutes. One person spins, the whole team does it. Failing a dare is −5.</p>
+    <p class="muted" style="margin:0 0 4px">One spin every 15 minutes. Only one person can spin at a time, and everyone on ${esc(t.name)} sees the same spin. Failing a dare is −5.</p>
     <div class="wheel-box"><div class="pointer"></div><canvas id="wheel" width="640" height="640"></canvas></div>
-    <div class="result" id="result" aria-live="polite">${esc(ui.lastResult)}</div>
-    <div class="row" style="justify-content:center;margin:8px 0 6px"><button class="btn primary needs-write" id="spin" ${ui.spinning?"disabled":""}>Spin for ${esc(t.name)}</button></div>
-    <h3>Spins (${d.dares.length})</h3>
-    ${dares.length?dares.map((x,ri)=>{const i=d.dares.length-1-ri;return `<div class="dare"><span class="n">#${i+1}</span><div><b>${esc(x.text)}</b> <span class="muted" style="font-size:.8rem">at ${esc(x.at||"")}</span></div>
-      <div class="acts needs-write">
-        <button class="seg" data-dare="${i}" data-st="pending" aria-pressed="${x.status==="pending"}">In progress</button>
-        <button class="seg done" data-dare="${i}" data-st="done" aria-pressed="${x.status==="done"}">Done</button>
-        <button class="seg failed" data-dare="${i}" data-st="failed" aria-pressed="${x.status==="failed"}">Failed −5</button>
-        <button class="seg" data-dare="${i}" data-st="remove">Remove</button></div></div>`}).join(""):`<p class="muted">No spins yet. First spin when the clock starts.</p>`}
+    <div class="row" style="justify-content:center;margin:8px 0 6px"><button class="btn primary needs-write" id="spin" ${busy?"disabled":""}>${busy?"Spinning…":"Spin for "+esc(t.name)}</button></div>
+    <div class="confirm ${ui.confirmSpin?"show":""}" style="justify-content:center"><span>No spin is due yet. Spin anyway?</span><button class="btn primary" id="spinYes">Spin anyway</button><button class="btn" data-cancel>Cancel</button></div>
+    ${ui.spinMsg?`<p class="guess" style="text-align:center">${esc(ui.spinMsg)}</p>`:""}
+    <h3>Spins and challenges (${list.length})</h3>
+    ${rows.length?rows.join(""):`<p class="muted">No spins yet. First spin when the clock starts.</p>`}
   </section>`;
   const ing=`<section class="panel"><h2>Menu</h2>
     ${CATS.map(([k,l])=>`<label class="dish"><span class="label">${l}</span><input type="text" class="needs-write" id="dish-${t.id}-${k}" data-dish="${k}" value="${esc(d.dishes[k]||"")}" placeholder="What are you making?"></label>`).join("")}
@@ -395,7 +541,7 @@ function viewJudge(){
   </section>`}).join("")+`<p class="muted" style="grid-column:1/-1;margin:0;font-size:.85rem">With more than one judge, each dish gets the judges' average, so the max stays 30.</p>`;
 }
 function viewSetup(){
-  const c=state.config;
+  const c=state.config,w=ui.wheelDraft||c.wheel;
   return `<section class="panel"><h2>Competition clock</h2>
     <p class="muted" style="margin:0 0 10px">2 hours. Start it when everyone is in their kitchen. Every device showing this page follows the same clock.</p>
     <div class="row needs-write">
@@ -408,60 +554,176 @@ function viewSetup(){
     <label class="check needs-write"><input type="checkbox" id="stdMode" ${c.stdMode?"checked":""}> Count standard drinks instead of drinks</label>
     <p class="muted" style="margin:0;font-size:.85rem">Off: every finished drink counts as 1, as the rules say. On: drinks count by alcohol, where a 12 oz 5% beer is 1, a Fireball shot 0.8, a cocktail 1.5. Drinks already logged count as 1 beer each. The goal stays 5 per person either way.</p>
   </section>
-  <section class="panel"><h2>Wheel slots</h2>
-    <p class="muted" style="margin:0 0 8px">One dare per line. Changes apply to every team's wheel.</p>
-    <textarea id="wheelText" class="needs-write" aria-label="Wheel slots">${esc(c.wheel.join("\n"))}</textarea>
-    <div class="row needs-write" style="margin-top:8px"><button class="btn primary" id="wheelSave">Save wheel</button><button class="btn" id="wheelDefault">Use sample dares</button><span id="wheelMsg" class="muted"></span></div>
+  <section class="panel"><h2>Sounds</h2>
+    <p class="muted" style="margin:0 0 4px;font-size:.85rem">Shared by every device. A phone can only play sound after someone taps the page once, so tap anywhere after opening it.</p>
+    ${SOUND_EVENTS.map(([k,l])=>`<div class="snd"><span>${l}</span><select class="in needs-write" data-sound="${k}" aria-label="${l}">${SOUNDS.map(([v,n])=>`<option value="${v}" ${c.sounds[k]===v?"selected":""}>${n}</option>`).join("")}</select><button class="btn" data-test="${k}">Play</button></div>`).join("")}
+    <label class="check"><input type="checkbox" id="muteBox" ${muted?"checked":""}> Mute this device</label>
+  </section>
+  <section class="panel" style="grid-column:1/-1"><h2>Wheel slots</h2>
+    <p class="muted" style="margin:0 0 4px;font-size:.88rem">Changes apply to every team's wheel. The description shows in the popup when the wheel lands. <b>Give to another team</b> makes the spinner pick a team, and that team gets a banner. <b>Power 15 timer</b> starts a sip alert every minute for 15 minutes.</p>
+    <div class="needs-write">${w.map((s,i)=>`<div class="slot">
+      <span class="n">Slot ${i+1}</span>
+      <input type="text" data-slot="${i}" data-f="text" value="${esc(s.text)}" maxlength="80" aria-label="Slot ${i+1} name" placeholder="Name on the wheel">
+      <input type="text" class="desc" data-slot="${i}" data-f="desc" value="${esc(s.desc)}" maxlength="240" aria-label="Slot ${i+1} description" placeholder="Description (shown in the popup)">
+      <div class="row"><label class="tog"><input type="checkbox" data-slot="${i}" data-f="give" ${s.give?"checked":""}> Give to another team</label>
+        <label class="tog"><input type="checkbox" data-slot="${i}" data-f="timer" ${s.timer?"checked":""}> Power 15 timer</label>
+        <button class="seg" data-slotdel="${i}" style="margin-left:auto">Remove</button></div>
+    </div>`).join("")}</div>
+    <div class="row needs-write" style="margin-top:10px"><button class="btn" id="slotAdd" ${w.length>=24?"disabled":""}>Add slot</button><button class="btn primary" id="wheelSave">Save wheel</button><button class="btn" id="wheelDefault">Reset to default list</button><span id="wheelMsg" class="${ui.wheelDraft?"guess":"muted"}">${esc(ui.wheelMsg||(ui.wheelDraft?"Unsaved changes":""))}</span></div>
   </section>
   <section class="panel"><h2>Start over</h2>
-    <p class="muted" style="margin:0 0 10px">Clears drinks, spins, scores, ingredients and the clock for all teams. Keeps the wheel slots.</p>
+    <p class="muted" style="margin:0 0 10px">Clears drinks, spins, challenges, timers, scores and the clock for all teams. Keeps the wheel slots.</p>
     <button class="btn danger needs-write" id="wipe">Clear all results</button>
     <div class="confirm" id="wipeConfirm"><span>This can't be undone.</span><button class="btn danger" id="wipeYes">Clear everything</button><button class="btn" data-cancel>Cancel</button></div>
   </section>`;
 }
 
-/* ---------- wheel ---------- */
-let wheelRot=0;
+/* ---------- wheel drawing ---------- */
 function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim()}
-function drawWheel(){
-  const cv=$("#wheel");if(!cv)return;
-  const ctx=cv.getContext("2d"),slots=state.config.wheel.length?state.config.wheel:["Add dares in Setup"];
+function drawWheelOn(cv,labels){
+  if(!cv)return;
+  const ctx=cv.getContext("2d"),slots=labels.length?labels:["Add slots in Setup"];
   const R=318,cx=320,cy=320,a=2*Math.PI/slots.length;
   const pal=[css("--t-garrett"),css("--t-jessop"),css("--t-ben"),css("--accent"),css("--warn")];
   ctx.clearRect(0,0,640,640);
   slots.forEach((s,i)=>{
     const s0=-Math.PI/2+i*a;
     ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,R,s0,s0+a);ctx.closePath();
-    ctx.fillStyle=pal[i%pal.length];ctx.globalAlpha=i%2?0.78:1;ctx.fill();ctx.globalAlpha=1;
+    /* odd counts would put two same colors next to each other at the seam */
+    const ci=(slots.length%pal.length===1&&i===slots.length-1)?2:i%pal.length;
+    ctx.fillStyle=pal[ci];ctx.globalAlpha=i%2?0.78:1;ctx.fill();ctx.globalAlpha=1;
     ctx.strokeStyle=css("--surface");ctx.lineWidth=3;ctx.stroke();
     ctx.save();ctx.translate(cx,cy);ctx.rotate(s0+a/2);ctx.fillStyle="#111418";ctx.textAlign="right";ctx.textBaseline="middle";
-    const fs=slots.length>14?17:21;ctx.font=`700 ${fs}px "DM Sans", system-ui, sans-serif`;
-    let txt=s;const maxW=R-70;while(ctx.measureText(txt).width>maxW&&txt.length>4)txt=txt.slice(0,-2);
+    const maxW=R-70;let fs=slots.length>14?17:21;
+    const font=()=>ctx.font=`700 ${fs}px "DM Sans", system-ui, sans-serif`;font();
+    while(ctx.measureText(s).width>maxW&&fs>14){fs--;font()}
+    let txt=s;while(ctx.measureText(txt).width>maxW&&txt.length>4)txt=txt.slice(0,-2);
     if(txt!==s)txt=txt.trimEnd()+"…";
     ctx.fillText(txt,R-18,0);ctx.restore();
   });
   ctx.beginPath();ctx.arc(cx,cy,38,0,2*Math.PI);ctx.fillStyle=css("--surface");ctx.fill();
-  cv.style.transition="none";cv.style.transform=`rotate(${wheelRot}deg)`;void cv.offsetWidth;cv.style.transition="";
 }
-function spin(){
-  if(ui.spinning||readOnly)return;
+
+/* ---------- synced spins ----------
+   spins/<team> holds the team's latest spin. A Firebase transaction claims it, so if two people tap Spin
+   at the same moment, only the first write lands and both phones play that one. */
+function requestSpin(teamId,force){
+  if(readOnly||ui.requesting)return;
   const slots=state.config.wheel;if(!slots.length)return;
-  const cv=$("#wheel"),i=Math.floor(Math.random()*slots.length),a=360/slots.length;
-  const jitter=(Math.random()-.5)*a*.6;
-  const target=((-(i+.5)*a+jitter)%360+360)%360;
-  const base=wheelRot-(wheelRot%360);
-  wheelRot=base+360*6+target;
-  ui.spinning=true;ui.lastResult="Spinning…";$("#result").textContent=ui.lastResult;$("#spin").disabled=true;
-  const teamId=ui.team;
-  const finish=()=>{
-    ui.spinning=false;ui.lastResult=slots[i];
-    const at=state.config.running||elapsed()>0?fmt(elapsed(),true)+" in":new Date().toLocaleTimeString([], {hour:"numeric",minute:"2-digit"});
-    state.teams[teamId].dares.push({text:slots[i],status:"pending",at});
-    saveTeam(teamId);render();
-  };
-  let fired=false;const once=()=>{if(!fired){fired=true;finish()}};
-  cv.addEventListener("transitionend",once,{once:true});setTimeout(once,4600);
-  cv.style.transform=`rotate(${wheelRot}deg)`;
+  if(spinBusy(teamId)){syncOverlay();return}
+  if(!force&&state.config.running&&owed(teamId)===0){ui.confirmSpin=true;render();return}
+  ui.confirmSpin=false;ui.spinMsg="";
+  const i=Math.floor(Math.random()*slots.length),s=slots[i],start=now()+500;
+  const rec={id:makeId(),by:teamId,slot:i,labels:slots.map(x=>x.text),text:s.text,desc:s.desc||"",give:!!s.give,timer:!!s.timer,
+    jitter:Math.round((Math.random()-.5)*60)/100,startAt:start,landAt:start+SPIN_MS};
+  ui.requesting=teamId;render();
+  const fail=msg=>{if(ui.requesting!==teamId)return;ui.requesting=null;ui.spinMsg=msg;render()};
+  const timer=setTimeout(()=>fail("Couldn't reach the other phones. Check the connection and spin again."),9000);
+  live.doc("spins/"+teamId).transaction(cur=>{
+    if(cur&&cur.landAt&&now()<cur.landAt+LOCK_PAD)return; /* someone on the team is already spinning */
+    return rec;
+  }).then(res=>{
+    clearTimeout(timer);ui.requesting=null;
+    if(res.committed&&res.val&&res.val.id===rec.id){
+      /* this device won: record the spin (hidden until it lands) and start a self Power 15 */
+      live.doc(`dares/${teamId}/${rec.id}`).set({text:rec.text,desc:rec.desc,give:rec.give,timer:rec.timer,status:rec.give?"pick":"pending",at:atLabel(),t:rec.landAt}).catch(()=>{});
+      if(rec.timer&&!rec.give)live.doc("power/"+teamId).set({startAt:rec.landAt,text:rec.text}).catch(()=>{});
+    }else ui.spinMsg="Someone on your team spun first. Showing their spin.";
+    render();syncOverlay();
+  }).catch(()=>{clearTimeout(timer);fail("That spin didn't go through. Try again.")});
+}
+/* the dare entry doubles as the lock for picking a team, so only one target is ever chosen */
+function giveTo(fromId,spinId,toId){
+  if(readOnly||fromId===toId)return;
+  live.doc(`dares/${fromId}/${spinId}`).transaction(cur=>{
+    if(!cur||cur.givenTo)return;
+    cur.givenTo=toId;cur.status="given";return cur;
+  }).then(res=>{
+    if(!res.committed||!res.val)return;
+    const d=res.val,t=now();
+    /* "Pick a team. ..." is written for the spinner; the receiving team just sees what to do */
+    const desc=String(d.desc||"").replace(/^pick a team[.:,]?\s*/i,"");
+    live.doc(`dares/${toId}/${spinId}-g`).set({text:d.text,desc,from:fromId,timer:!!d.timer,status:"pending",at:atLabel(),t}).catch(()=>{});
+    if(d.timer)live.doc("power/"+toId).set({startAt:t,text:d.text,from:fromId}).catch(()=>{});
+  }).catch(()=>{});
+}
+let landTimers={};
+function onSpinRec(teamId){
+  const r=liveState.spins[teamId];
+  clearTimeout(landTimers[teamId]);
+  if(r){const wait=r.landAt+LOCK_PAD-now();if(wait>0)landTimers[teamId]=setTimeout(()=>render(true),wait+60)}
+  if(teamId===ui.team)syncOverlay();
+  render(true);
+}
+function onDares(teamId){
+  if(teamId===ui.team)syncOverlay();
+  render(true);
+}
+
+/* ---------- spin popup ---------- */
+let ov={id:null,team:null,phase:"",timer:0,html:""},ovRot=0;
+const findDare=(team,id)=>daresOf(team).find(d=>d.id===id);
+function targetRot(rec){
+  const n=rec.labels.length,a=360/n,t=((-(rec.slot+.5+(rec.jitter||0))*a)%360+360)%360;
+  return ovRot-((ovRot%360)+360)%360+360*6+t;
+}
+function syncOverlay(){
+  const team=ui.team,rec=liveState.spins[team];
+  if(!rec||!Array.isArray(rec.labels)||!rec.labels.length){closeOverlay();return}
+  const dare=findDare(team,rec.id),needsPick=rec.give&&!(dare&&dare.givenTo);
+  const since=now()-rec.landAt,stale=since>(needsPick?30:5)*60000;
+  if(acks.has(rec.id)||stale){if(ov.id)closeOverlay();return}
+  if(ov.id!==rec.id||ov.team!==team)openOverlay(team,rec);else paintOverlay();
+}
+function openOverlay(team,rec){
+  clearTimeout(ov.timer);
+  ov={id:rec.id,team,phase:"",timer:0,html:""};
+  const t=teamById(team),el=$("#ov");
+  el.hidden=false;document.body.classList.add("ov-open");
+  el.querySelector(".ov-card").style.setProperty("--tc",`var(${t.color})`);
+  const cv=$("#ovWheel");drawWheelOn(cv,rec.labels);
+  const left=rec.landAt-now(),end=targetRot(rec);
+  cv.style.transition="none";cv.style.transform=`rotate(${ovRot}deg)`;void cv.offsetWidth;
+  if(left>400){
+    ov.phase="spin";
+    cv.style.transition=`transform ${Math.round(left)}ms cubic-bezier(.12,.7,.15,1)`;
+    cv.style.transform=`rotate(${end}deg)`;
+    ov.timer=setTimeout(()=>land(rec.id),left);
+  }else{
+    cv.style.transform=`rotate(${end}deg)`;ov.phase="landed";
+    if(left>-4000)playEvent("result");
+  }
+  ovRot=end;paintOverlay();
+}
+function land(id){
+  if(ov.id!==id)return;
+  ov.phase="landed";paintOverlay();playEvent("result");render();
+}
+function paintOverlay(){
+  const rec=liveState.spins[ov.team];if(!rec||rec.id!==ov.id)return;
+  const t=teamById(ov.team),dare=findDare(ov.team,rec.id);
+  let head,html;
+  if(ov.phase==="spin"){
+    head=`${t.name} is spinning`;
+    html=`<p class="muted" style="margin:0;text-align:center">Everyone on ${esc(t.name)} sees this spin.</p>`;
+  }else{
+    head=`${t.name} spin`;
+    const given=dare&&dare.givenTo?teamById(dare.givenTo):null;
+    let extra="";
+    if(rec.give)extra=given
+      ?`<div class="ov-note" style="--tc:var(${given.color})">Given to <b>${esc(given.name)}</b>. A banner just popped up on their screens.${rec.timer?" Their Power 15 timer is running.":""}</div>`
+      :`<div class="label">Pick a team to give this to</div><div class="picker needs-write">${TEAMS.filter(x=>x.id!==ov.team).map(x=>`<button data-give="${x.id}" data-from="${ov.team}" data-spin="${esc(rec.id)}" style="--tc:var(${x.color})">${esc(x.name)}</button>`).join("")}</div>`;
+    else if(rec.timer)extra=`<div class="ov-note">Power 15 is on. Every minute for 15 minutes this app plays a sound, and everyone sips.</div>`;
+    const ready=!rec.give||!!given;
+    html=`<div class="label">Landed on</div><div class="ov-title">${esc(rec.text)}</div>${rec.desc?`<p class="ov-desc">${esc(rec.desc)}</p>`:""}${extra}
+      <button class="btn primary ov-ok" id="ovOk" ${ready?"":"disabled"}>${ready?"Got it":"Pick a team first"}</button>`;
+  }
+  $("#ovHead").textContent=head;
+  if(html!==ov.html){$("#ovBody").innerHTML=html;ov.html=html}
+}
+function closeOverlay(){
+  clearTimeout(ov.timer);ov={id:null,team:null,phase:"",timer:0,html:""};
+  $("#ov").hidden=true;document.body.classList.remove("ov-open");
 }
 
 /* ---------- render + events ---------- */
@@ -470,15 +732,14 @@ function render(fromRemote){
   const v=$("#view");
   // avoid clobbering a field someone is typing in when a remote update lands
   const ae=document.activeElement;
-  if(fromRemote&&ui.spinning)return;
   if(fromRemote&&ae&&(ae.tagName==="TEXTAREA"||(ae.tagName==="INPUT"&&ae.type==="text")))return;
   document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===ui.tab));
   v.className=ui.tab==="board"?"":"two";
   const html=ui.tab==="board"?viewBoard():ui.tab==="team"?viewTeam():ui.tab==="judge"?viewJudge():viewSetup();
-  if(html!==lastHtml||!fromRemote){v.innerHTML=html;lastHtml=html}
-  if(ui.tab==="team")drawWheel();
+  if(html!==lastHtml||!fromRemote){v.innerHTML=html;lastHtml=html;if(ui.tab==="team")drawWheelOn($("#wheel"),state.config.wheel.map(s=>s.text))}
   tick();
 }
+let prevLeft=null;
 function tick(){
   const e=elapsed(),left=DURATION-e,c=state.config;
   $("#clock").textContent=fmt(left,true);
@@ -489,18 +750,28 @@ function tick(){
     sub=(c.running?"":"Paused · ")+(due?"Spin the wheel now":"Next spin in "+fmt(toSpin))}
   $("#clockSub").textContent=sub;
   $("#bar").classList.toggle("due",due||(left<=0&&e>0&&left>-30000));
-  spinAlert();
+  if(prevLeft!==null&&prevLeft>0&&left<=0&&c.running)playEvent("timeup");
+  prevLeft=left;
+  evAlert();pwAlert();spinAlert();
 }
 setInterval(tick,500);
 
-/* ---------- spin alert + chime ---------- */
-let muted=false,actx=null,alertKey="",lastChime=0,lastOwed=0;
+/* ---------- sound ---------- */
+let muted=false,actx=null;
+const buffers={};
 try{muted=localStorage.getItem(LS+"-mute")==="1"}catch(e){}
 /* browsers only allow sound after a tap, so unlock audio on the first one */
-function unlockAudio(){try{if(!actx){const A=window.AudioContext||window.webkitAudioContext;if(A)actx=new A()}
-  if(actx&&actx.state==="suspended")actx.resume().then(()=>spinAlert(),()=>{})}catch(e){}}
+function unlockAudio(){try{if(!actx){const A=window.AudioContext||window.webkitAudioContext;if(A){actx=new A();loadSounds()}}
+  if(actx&&actx.state==="suspended")actx.resume().then(()=>tick(),()=>{})}catch(e){}}
 document.addEventListener("pointerdown",unlockAudio,{passive:true});
 document.addEventListener("keydown",unlockAudio);
+function loadSounds(){
+  for(const [id] of SOUNDS){if(id==="none"||id==="chime")continue;
+    fetch("sounds/"+id+".wav").then(r=>{if(!r.ok)throw 0;return r.arrayBuffer()})
+      .then(b=>new Promise((ok,no)=>actx.decodeAudioData(b,ok,no))).then(buf=>{buffers[id]=buf}).catch(()=>{});
+  }
+}
+function vibrate(){try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}}
 function chime(){
   if(muted||!actx||actx.state!=="running")return false;
   const t0=actx.currentTime;
@@ -510,71 +781,134 @@ function chime(){
     g.gain.setValueAtTime(0,t0+d);g.gain.linearRampToValueAtTime(.35,t0+d+.02);g.gain.exponentialRampToValueAtTime(.001,t0+d+.32);
     o.connect(g).connect(actx.destination);o.start(t0+d);o.stop(t0+d+.35);
   });
-  try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}
-  return true;
+  vibrate();return true;
 }
+/* returns false when the browser hasn't allowed sound yet, so callers can retry on the next tick */
+function play(id){
+  if(muted||!actx||actx.state!=="running")return false;
+  if(id==="none")return true;
+  const b=buffers[id];if(!b)return chime();
+  const src=actx.createBufferSource();src.buffer=b;src.connect(actx.destination);src.start();
+  vibrate();return true;
+}
+const playEvent=ev=>play(state.config.sounds[ev]||DEFAULT_SOUNDS[ev]);
+function syncMute(){document.querySelectorAll("[data-mute]").forEach(b=>{b.textContent=muted?"Sound off":"Mute";b.setAttribute("aria-pressed",muted)});
+  const m=$("#muteBox");if(m)m.checked=muted}
+
+/* ---------- alert strips ---------- */
+let spinKey="",lastChime=0;
 function spinAlert(){
   const t=teamById(ui.team),n=owed(t.id),box=$("#spinAlert");
-  if(!n||ui.spinning){box.hidden=true;alertKey="";lastOwed=n;return}
+  if(!n||ov.id||spinBusy(t.id)||ui.requesting){box.hidden=true;spinKey="";return}
   box.hidden=false;
-  const key=t.id+"|"+n+"|"+muted;
-  if(key!==alertKey){alertKey=key;
+  const key=t.id+"|"+n;
+  if(key!==spinKey){spinKey=key;
     box.style.setProperty("--tc",`var(${t.color})`);
     $("#spinMsg").innerHTML=`<b>${esc(t.name)}: spin the wheel</b><span>${n>1?n+" spins owed. ":""}This stays up until your team spins.</span>`;
-    $("#spinMute").textContent=muted?"Sound off":"Mute";$("#spinMute").setAttribute("aria-pressed",muted);
   }
   /* alarm repeats every 4 seconds until the spin lands; a chime that the browser blocked (no tap yet) is retried next tick */
-  const now=Date.now();
-  if(now-lastChime>=4000&&chime())lastChime=now;
-  lastOwed=n;
+  const ms=Date.now();
+  if(ms-lastChime>=4000&&chime())lastChime=ms;
 }
-function goSpin(){
-  ui.tab="team";saveUi();render();
-  const w=$("#wheel");if(w)w.scrollIntoView({behavior:"smooth",block:"center"});
+let evKey="",lastEvSound=0;
+function evAlert(){
+  const box=$("#evAlert"),list=daresOf(ui.team).filter(d=>d.from&&!acks.has(d.id)&&now()-(d.t||0)<20*60000);
+  if(!list.length){box.hidden=true;evKey="";return}
+  const d=list[list.length-1],from=teamById(d.from)||{name:"Another team",color:"--warn"};
+  box.hidden=false;
+  const key=d.id+"|"+list.length;
+  if(key!==evKey){
+    if(!evKey.startsWith(d.id+"|"))lastEvSound=0;
+    evKey=key;
+    box.style.setProperty("--tc",`var(${from.color})`);
+    $("#evMsg").innerHTML=`<b>${esc(from.name)} gave you a challenge</b><span class="what">${esc(d.text)}</span>${d.desc?`<span>${esc(d.desc)}</span>`:""}${list.length>1?`<span>${list.length-1} more after this one</span>`:""}`;
+    $("#evOk").dataset.ack=d.id;
+  }
+  /* repeats every 20 seconds until someone on this device taps Got it */
+  const ms=Date.now();
+  if(ms-lastEvSound>=20000&&playEvent("given"))lastEvSound=ms;
+}
+let lastSipKey="";
+function pwAlert(){
+  const box=$("#pwAlert"),s=powerState(ui.team);
+  if(!s){box.hidden=true;return}
+  box.hidden=false;box.classList.toggle("fresh",s.fresh);
+  const from=s.p.from&&teamById(s.p.from);
+  box.style.setProperty("--tc",from?`var(${from.color})`:"var(--accent)");
+  const last=s.idx>=POWER_SIPS-1;
+  $("#pwMsg").innerHTML=`<b>${s.fresh?"Power 15: everyone sip now":"Power 15"}</b><span>Sip ${s.idx+1} of ${POWER_SIPS} · ${last?"done in "+fmt(s.left):"next sip in "+fmt(s.next)}${from?" · from "+esc(from.name):""}</span>`;
+  if(!ui.stopArm||Date.now()-ui.stopArm>4000){ui.stopArm=0;$("#pwStop").textContent="Stop"}
+  const key=s.p.startAt+"|"+s.idx;
+  if(key!==lastSipKey){if(!s.fresh)lastSipKey=key;else if(playEvent("sip"))lastSipKey=key}
 }
 
 document.addEventListener("click",ev=>{
   const b=ev.target.closest("button");if(!b)return;
   if(b.dataset.tab){ui.tab=b.dataset.tab;saveUi();render();return}
-  if(b.dataset.pick){ui.team=b.dataset.pick;ui.lastResult="";saveUi();render();return}
-  if(b.hasAttribute("data-cancel")){b.closest(".confirm").classList.remove("show");return}
-  if(b.id==="spinGo"){goSpin();return}
-  if(b.id==="spinMute"){muted=!muted;try{localStorage.setItem(LS+"-mute",muted?"1":"0")}catch(e){}alertKey="";if(!muted){lastChime=0}spinAlert();return}
+  if(b.dataset.pick){ui.team=b.dataset.pick;ui.confirmSpin=false;ui.spinMsg="";saveUi();render();syncOverlay();return}
+  if(b.hasAttribute("data-cancel")){b.closest(".confirm").classList.remove("show");ui.confirmSpin=false;return}
+  if(b.hasAttribute("data-mute")){muted=!muted;try{localStorage.setItem(LS+"-mute",muted?"1":"0")}catch(e){}if(!muted)lastChime=0;syncMute();return}
+  if(b.dataset.test){play(state.config.sounds[b.dataset.test]);return}
+  if(b.id==="ovOk"){if(ov.id)ack(ov.id);closeOverlay();render();return}
+  if(b.id==="evOk"){if(b.dataset.ack)ack(b.dataset.ack);evKey="";tick();return}
   if(readOnly)return;
+  if(b.id==="spinGo"){requestSpin(ui.team,true);return}
+  if(b.dataset.give){giveTo(b.dataset.from,b.dataset.spin,b.dataset.give);return}
+  if(b.id==="pwStop"){
+    if(ui.stopArm&&Date.now()-ui.stopArm<4000){ui.stopArm=0;live.doc("power/"+ui.team).remove().catch(()=>{})}
+    else{ui.stopArm=Date.now();b.textContent="Tap again to stop"}
+    return}
   if(b.dataset.drink){const log=state.teams[ui.team].drinkLog,m=b.dataset.drink;
     if(b.dataset.d==="1"&&state.config.stdMode){ui.pickFor=ui.pickFor===m?null:m;render();return}
     log[m]=log[m]||[];if(b.dataset.d==="1")log[m].push(1);else log[m].pop();
     ui.pickFor=null;saveTeam(ui.team);render();return}
   if(b.dataset.type){const log=state.teams[ui.team].drinkLog,m=b.dataset.for;(log[m]=log[m]||[]).push(DRINK_TYPES[Number(b.dataset.type)][2]);
     ui.pickFor=null;saveTeam(ui.team);render();return}
-  if(b.dataset.dare){const list=state.teams[ui.team].dares,i=Number(b.dataset.dare);
-    if(b.dataset.st==="remove")list.splice(i,1);else list[i].status=b.dataset.st;saveTeam(ui.team);render();return}
+  if(b.dataset.dare){const ref=live.doc(`dares/${ui.team}/${b.dataset.dare}`);
+    (b.dataset.st==="remove"?ref.remove():ref.update({status:b.dataset.st})).catch(()=>{});return}
+  if(b.dataset.slotdel!==undefined){draft().splice(Number(b.dataset.slotdel),1);ui.wheelMsg="";render();return}
   const c=state.config;
   switch(b.id){
-    case "spin":spin();break;
+    case "spin":requestSpin(ui.team,false);break;
+    case "spinYes":requestSpin(ui.team,true);break;
     case "clkGo":
-      if(c.running){c.banked=elapsed();c.running=false}else{c.startAt=Date.now();c.running=true;
+      if(c.running){c.banked=elapsed();c.running=false}else{c.startAt=now();c.running=true;
         try{navigator.wakeLock&&navigator.wakeLock.request("screen").catch(()=>{})}catch(e){}}
       saveConfig();render();break;
     case "clkReset":$("#clkConfirm").classList.add("show");break;
     case "clkYes":c.running=false;c.banked=0;c.startAt=0;saveConfig();render();break;
     case "jMinus":c.judges=Math.max(1,c.judges-1);saveConfig();render();break;
     case "jPlus":c.judges=Math.min(6,c.judges+1);saveConfig();render();break;
-    case "wheelSave":{const lines=$("#wheelText").value.split("\n").map(s=>s.trim()).filter(Boolean).slice(0,24);
-      c.wheel=lines;saveConfig();render();$("#wheelMsg").textContent="Saved "+lines.length+" slots";break}
-    case "wheelDefault":$("#wheelText").value=DEFAULT_WHEEL.join("\n");$("#wheelMsg").textContent="Tap Save wheel to keep these";break;
+    case "slotAdd":{const d=draft();if(d.length<24)d.push(normSlot({text:""}));ui.wheelMsg="";render();
+      const ins=document.querySelectorAll('[data-f="text"]');if(ins.length)ins[ins.length-1].focus();break}
+    case "wheelSave":{const lines=(ui.wheelDraft||c.wheel).map(normSlot).filter(s=>s.text).slice(0,24);
+      c.wheel=lines;c.wheelVersion=WHEEL_VERSION;ui.wheelDraft=null;ui.wheelMsg="Saved "+lines.length+" slots";saveConfig();render();break}
+    case "wheelDefault":ui.wheelDraft=clone(DEFAULT_WHEEL);ui.wheelMsg="Tap Save wheel to keep these";render();break;
     case "wipe":$("#wipeConfirm").classList.add("show");break;
     case "wipeYes":for(const t of TEAMS){state.teams[t.id]=blankTeam();saveTeam(t.id)}
-      c.running=false;c.banked=0;c.startAt=0;saveConfig();ui.lastResult="";render();break;
+      for(const p of ["dares","spins","power"])live.doc(p).remove().catch(()=>{});
+      c.running=false;c.banked=0;c.startAt=0;saveConfig();closeOverlay();render();break;
   }
 });
+/* wheel edits stay in a draft until Save wheel, so a sync from another phone can't wipe them mid-edit */
+function draft(){if(!ui.wheelDraft)ui.wheelDraft=clone(state.config.wheel);return ui.wheelDraft}
+document.addEventListener("input",ev=>{
+  const el=ev.target;if(el.dataset.slot===undefined||el.type==="checkbox")return;
+  draft()[Number(el.dataset.slot)][el.dataset.f]=el.value;
+  const m=$("#wheelMsg");if(m){m.textContent="Unsaved changes";m.className="guess"}ui.wheelMsg="";
+});
 document.addEventListener("change",ev=>{
-  const el=ev.target;if(readOnly)return;
+  const el=ev.target;
+  if(el.id==="muteBox"){muted=el.checked;try{localStorage.setItem(LS+"-mute",muted?"1":"0")}catch(e){}syncMute();return}
+  if(readOnly)return;
   if(el.id==="stdMode"){state.config.stdMode=el.checked;ui.pickFor=null;saveConfig();render()}
+  else if(el.dataset.slot!==undefined&&el.type==="checkbox"){draft()[Number(el.dataset.slot)][el.dataset.f]=el.checked;ui.wheelMsg="";render()}
+  else if(el.dataset.sound){state.config.sounds[el.dataset.sound]=el.value;saveConfig();play(el.value)}
   else if(el.dataset.dish!==undefined){state.teams[ui.team].dishes[el.dataset.dish]=el.value.slice(0,80);saveTeam(ui.team)}
   else if(el.dataset.score){const [tid,j,k]=el.dataset.score.split("|"),sc=state.teams[tid].scores;
     sc[j]=sc[j]||{};if(el.value==="")delete sc[j][k];else sc[j][k]=Number(el.value);saveTeam(tid);render()}
 });
+syncMute();
 render();
 })();
 </script>
