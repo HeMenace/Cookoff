@@ -266,11 +266,11 @@ const DEFAULT_WHEEL=[
   {text:"One person loses a hand (irl)",desc:"Your team picks one person who has to keep one hand behind their back for the next 15 minutes, or until your next spin.",give:false,timer:false},
   {text:"Catch a grape",desc:"Someone tosses a grape and another teammate catches it in their mouth. Keep trying until one is caught.",give:false,timer:false}
 ];
-const SOUNDS=[["none","No sound"],["chime","Chime"],["random","Random clip"],["if-you-can-talk","IF YOU CAN TALK"],["maggot","MAGGOT"],["maggot-2","MAGGOT (2)"],["i-cant","I CANT"],["its-not-done","ITS NOT DONE"],["vine-boom","VINE BOOM"],["skeleton-banging-shield","SKELETON BANGING SHIELD"],["tactical-nuke-incoming","TACTICAL NUKE INCOMING"],["its-joever","ITS JOEVER"]];
+const SOUNDS=[["none","No sound"],["chime","Chime"],["random","Random clip"],["if-you-can-talk","IF YOU CAN TALK"],["i-cant","I CANT"],["its-not-done","ITS NOT DONE"],["vine-boom","VINE BOOM"],["skeleton-banging-shield","SKELETON BANGING SHIELD"],["tactical-nuke-incoming","TACTICAL NUKE INCOMING"],["its-joever","ITS JOEVER"]];
 /* every real clip, so "random" picks up any clip added to SOUNDS */
 const CLIPS=SOUNDS.map(s=>s[0]).filter(id=>!["none","chime","random"].includes(id));
 const SOUND_EVENTS=[["sip","Power 15, every minute"],["given","Another team gives you a challenge"],["result","The wheel lands for your team"],["timeup","Time is up"]];
-const DEFAULT_SOUNDS={sip:"if-you-can-talk",given:"maggot",result:"i-cant",timeup:"its-not-done"};
+const DEFAULT_SOUNDS={sip:"if-you-can-talk",given:"vine-boom",result:"i-cant",timeup:"its-not-done"};
 const clone=o=>JSON.parse(JSON.stringify(o));
 const blankTeam=()=>({drinks:{},drinkLog:{},scores:{},dishes:{}});
 /* bring older saves (plain counts) and Firebase's dropped empty fields into shape */
@@ -298,6 +298,8 @@ function normConfig(){
     c.wheelVersion=WHEEL_VERSION;changed=true}
   c.wheel=w.map(normSlot).filter(s=>s.text);
   c.sounds=Object.assign({},DEFAULT_SOUNDS,c.sounds||{});
+  /* a clip that was removed from SOUNDS falls back to the default */
+  for(const k in c.sounds)if(!SOUNDS.some(x=>x[0]===c.sounds[k]))c.sounds[k]=DEFAULT_SOUNDS[k]||"chime";
   return changed;
 }
 const state={
