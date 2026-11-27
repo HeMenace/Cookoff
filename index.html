@@ -266,7 +266,9 @@ const DEFAULT_WHEEL=[
   {text:"One person loses a hand (irl)",desc:"Your team picks one person who has to keep one hand behind their back for the next 15 minutes, or until your next spin.",give:false,timer:false},
   {text:"Catch a grape",desc:"Someone tosses a grape and another teammate catches it in their mouth. Keep trying until one is caught.",give:false,timer:false}
 ];
-const SOUNDS=[["none","No sound"],["chime","Chime"],["if-you-can-talk","IF YOU CAN TALK"],["maggot","MAGGOT"],["maggot-2","MAGGOT (2)"],["i-cant","I CANT"],["its-not-done","ITS NOT DONE"]];
+const SOUNDS=[["none","No sound"],["chime","Chime"],["random","Random clip"],["if-you-can-talk","IF YOU CAN TALK"],["maggot","MAGGOT"],["maggot-2","MAGGOT (2)"],["i-cant","I CANT"],["its-not-done","ITS NOT DONE"],["vine-boom","VINE BOOM"],["skeleton-banging-shield","SKELETON BANGING SHIELD"],["tactical-nuke-incoming","TACTICAL NUKE INCOMING"],["its-joever","ITS JOEVER"]];
+/* every real clip, so "random" picks up any clip added to SOUNDS */
+const CLIPS=SOUNDS.map(s=>s[0]).filter(id=>!["none","chime","random"].includes(id));
 const SOUND_EVENTS=[["sip","Power 15, every minute"],["given","Another team gives you a challenge"],["result","The wheel lands for your team"],["timeup","Time is up"]];
 const DEFAULT_SOUNDS={sip:"if-you-can-talk",given:"maggot",result:"i-cant",timeup:"its-not-done"};
 const clone=o=>JSON.parse(JSON.stringify(o));
@@ -812,7 +814,7 @@ function unlockAudio(){try{if(!actx){const A=window.AudioContext||window.webkitA
 document.addEventListener("pointerdown",unlockAudio,{passive:true});
 document.addEventListener("keydown",unlockAudio);
 function loadSounds(){
-  for(const [id] of SOUNDS){if(id==="none"||id==="chime")continue;
+  for(const id of CLIPS){
     fetch("sounds/"+id+".wav").then(r=>{if(!r.ok)throw 0;return r.arrayBuffer()})
       .then(b=>new Promise((ok,no)=>actx.decodeAudioData(b,ok,no))).then(buf=>{buffers[id]=buf}).catch(()=>{});
   }
@@ -829,10 +831,13 @@ function chime(){
   });
   vibrate();return true;
 }
+let lastRandom="";
+function randomClip(){const pool=CLIPS.length>1?CLIPS.filter(c=>c!==lastRandom):CLIPS;lastRandom=pool[Math.floor(Math.random()*pool.length)];return lastRandom}
 /* returns false when the browser hasn't allowed sound yet, so callers can retry on the next tick */
 function play(id){
   if(muted||!actx||actx.state!=="running")return false;
   if(id==="none")return true;
+  if(id==="random")id=randomClip();
   const b=buffers[id];if(!b)return chime();
   const src=actx.createBufferSource();src.buffer=b;src.connect(actx.destination);src.start();
   vibrate();return true;
